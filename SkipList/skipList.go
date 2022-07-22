@@ -2,6 +2,7 @@ package SkipList
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 )
 
@@ -73,6 +74,86 @@ func (sList *SkipList) Search(key string) (Node, error){
 	}
 	return *currentNode, errors.New("Not found.")
 }
+
+func (sList *SkipList) Insert(element Element) {
+	updateList := make([]*Node, sList.MaxLevel)
+	currentNode := sList.HeadNode
+
+	for i:= sList.HeadNode.Level - 1; i >= 0; i-- {
+		for currentNode.Forward[i] != nil && currentNode.Forward[i].Element.Key < element.Key {
+			currentNode = currentNode.Forward[i]
+		}
+		updateList[i] = currentNode
+	}
+
+	currentNode = currentNode.Forward[0]
+
+	if currentNode != nil &&currentNode.Element.Key == element.Key{
+		currentNode.Element.Value = element.Value
+		currentNode.Element.ValueSize = element.ValueSize
+	} else {
+		newLevel := sList.GetRandomLevel()
+		if newLevel > sList.SkipListLevel{
+			for i := sList.SkipListLevel + 1; i <= newLevel; i++ {
+				updateList[i-1] = sList.HeadNode
+			}
+			sList.SkipListLevel = newLevel
+			sList.HeadNode.Level = newLevel
+		}
+
+		newNode := InitNode(element, newLevel, sList.MaxLevel)
+		for i := 0; i <= newLevel; i++ {
+			newNode.Forward[i] = updateList[i].Forward[i]
+			updateList[i].Forward[i] = newNode
+		}
+	}
+}
+
+func (sList *SkipList) Delete(element Element) error {
+	updateList := make([]*Node, sList.MaxLevel)
+	currentNode := sList.HeadNode
+
+	for i := sList.HeadNode.Level - 1; i >= 0; i-- {
+		for currentNode.Forward[i] != nil && currentNode.Forward[i].Element.Key < element.Key {
+			currentNode = currentNode.Forward[i]
+		}
+		updateList[i] = currentNode
+	}
+
+	currentNode = currentNode.Forward[0]
+
+	if currentNode.Element.Key == element.Key {
+		for i := 0; i <= currentNode.Level-1; i++ {
+			if updateList[i].Forward[i] != nil && updateList[i].Forward[i].Element.Key != currentNode.Element.Key {
+				break
+			}
+			updateList[i].Forward[i] = currentNode.Forward[i]
+		}
+
+		for currentNode.Level > 1 && sList.HeadNode.Forward[currentNode.Level] == nil {
+			currentNode.Level--
+		}
+
+		currentNode = nil
+		return nil
+	}
+	return errors.New("Not found")
+}
+
+func (sList *SkipList) Print() {
+	fmt.Printf("\nhead->")
+	currentNode := sList.HeadNode
+
+	//Draw forward[0] base
+	for {
+		fmt.Printf("[key:%d][val:%v]->", currentNode.Element.Key, currentNode.Element.Value)
+		if currentNode.Forward[0] == nil {
+			break
+		}
+		currentNode = currentNode.Forward[0]
+	}
+}
+
 
 
 
