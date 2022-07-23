@@ -29,6 +29,7 @@ type SkipList struct {
 	HeadNode *Node
 	MaxLevel int
 	SkipListLevel int
+	Size int
 }
 
 func InitSkipList() *SkipList{
@@ -41,7 +42,7 @@ func InitSkipList() *SkipList{
 		Key: "",
 		Value: nil,
 	}
-	newSkipList := &SkipList{HeadNode: InitNode(headElem, 1, DefaultMaxLevel), SkipListLevel: 1}
+	newSkipList := &SkipList{HeadNode: InitNode(headElem, 1, DefaultMaxLevel), SkipListLevel: 1, Size: 0}
 	newSkipList.MaxLevel = DefaultMaxLevel
 	return newSkipList
 }
@@ -106,6 +107,7 @@ func (sList *SkipList) Insert(element Element) {
 			newNode.Forward[i] = updateList[i].Forward[i]
 			updateList[i].Forward[i] = newNode
 		}
+		sList.Size++
 	}
 }
 
@@ -144,7 +146,6 @@ func (sList *SkipList) Print() {
 	fmt.Printf("\nhead->")
 	currentNode := sList.HeadNode
 
-	//Draw forward[0] base
 	for {
 		fmt.Printf("[key:%d][val:%v]->", currentNode.Element.Key, currentNode.Element.Value)
 		if currentNode.Forward[0] == nil {
