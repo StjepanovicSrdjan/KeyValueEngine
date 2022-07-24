@@ -37,7 +37,7 @@ func (elem *Element) getSize() uint64{
 	return 29 + elem.KeySize + elem.ValueSize
 }
 
-func (elem *Element) EncodeRecord() []byte {
+func (elem *Element) Encode() []byte {
 	elemBytes := make([]byte, 0, elem.getSize())
 	buffer := bytes.NewBuffer(elemBytes)
 
@@ -79,7 +79,7 @@ func (elem *Element) EncodeRecord() []byte {
 	return buffer.Bytes()
 }
 
-func (elem *Element) DecodeRecord(reader *bufio.Reader) bool {
+func (elem *Element) Decode(reader *bufio.Reader) bool {
 	err := binary.Read(reader, binary.LittleEndian, &elem.Crc)
 	if err != nil {
 		if err == io.EOF {
