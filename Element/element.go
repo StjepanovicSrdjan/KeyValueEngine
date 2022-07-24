@@ -1,4 +1,4 @@
-package SkipList
+package Element
 
 import (
 	"bufio"

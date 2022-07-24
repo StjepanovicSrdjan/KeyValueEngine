@@ -2,6 +2,7 @@ package Memtable
 
 import (
 	"KeyValueEngine/SkipList"
+	"KeyValueEngine/Element"
 	"errors"
 )
 
@@ -32,8 +33,8 @@ func (memtable *Memtable) Clear() {
 	memtable.SkipList = sList
 }
 
-func (memtable *Memtable) Add(element SkipList.Element) ([]SkipList.Element) {
-	var elements []SkipList.Element = nil
+func (memtable *Memtable) Add(element Element.Element) ([]Element.Element) {
+	var elements []Element.Element = nil
 	_, err := memtable.SkipList.Search(element.Key)
 	if element.Tombstone == 1 {
 		if err != nil {
@@ -60,7 +61,7 @@ func (memtable *Memtable) Add(element SkipList.Element) ([]SkipList.Element) {
 	return elements
 }
 
-func (memtable *Memtable) GetElement(key string) (SkipList.Element, error) {
+func (memtable *Memtable) GetElement(key string) (Element.Element, error) {
 	node, err := memtable.SkipList.Search(key)
 	if err == nil {
 		if node.Element.Tombstone == 1 {
@@ -71,11 +72,11 @@ func (memtable *Memtable) GetElement(key string) (SkipList.Element, error) {
 }
 
 
-func (memtable *Memtable) getAll() []SkipList.Element {
+func (memtable *Memtable) getAll() []Element.Element {
 	if memtable.SkipList.Size == 0 {
 		return nil
 	}
-	var elements []SkipList.Element
+	var elements []Element.Element
 	var currentNode = memtable.SkipList.HeadNode.Forward[0]
 	for {
 		if currentNode == nil {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"KeyValueEngine/Element"
 )
 
 const (
@@ -11,12 +12,12 @@ const (
 )
 
 type Node struct {
-	Element Element
+	Element Element.Element
 	Forward []*Node
 	Level int
 }
 
-func InitNode(element Element, creatingLevel int, maxLevel int) *Node {
+func InitNode(element Element.Element, creatingLevel int, maxLevel int) *Node {
 	forwardEmpty := make([]*Node, maxLevel)
 	for i := 0; i <= maxLevel-1; i++ {
 		forwardEmpty[i] = nil
@@ -33,7 +34,7 @@ type SkipList struct {
 }
 
 func InitSkipList() *SkipList{
-	var headElem = Element{
+	var headElem = Element.Element{
 		Crc: 0,
 		Timestamp: 0,
 		Tombstone: 0,
@@ -76,7 +77,7 @@ func (sList *SkipList) Search(key string) (Node, error){
 	return *currentNode, errors.New("Not found.")
 }
 
-func (sList *SkipList) Insert(element Element) {
+func (sList *SkipList) Insert(element Element.Element) {
 	updateList := make([]*Node, sList.MaxLevel)
 	currentNode := sList.HeadNode
 
@@ -111,7 +112,7 @@ func (sList *SkipList) Insert(element Element) {
 	}
 }
 
-func (sList *SkipList) Delete(element Element) error {
+func (sList *SkipList) Delete(element Element.Element) error {
 	updateList := make([]*Node, sList.MaxLevel)
 	currentNode := sList.HeadNode
 
