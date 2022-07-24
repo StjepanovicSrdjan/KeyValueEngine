@@ -16,7 +16,7 @@ type Memtable struct {
 	SkipList *SkipList.SkipList
 }
 
-func InitMemtable() *SkipList.SkipList {
+func InitMemtable() *Memtable {
 	sList := SkipList.InitSkipList()
 	return &Memtable{Capacity: defaultCapacity, Threshold: defaultThreshold, SkipList: sList}
 }
@@ -48,13 +48,13 @@ func (memtable *Memtable) Add(element SkipList.Element) ([]SkipList.Element) {
 	} else {
 		_, err = memtable.SkipList.Search(element.Key)
 		if err == nil {
-			memtable.SkipList.Add(element)
+			memtable.SkipList.Insert(element)
 		} else {
 			if memtable.SkipList != nil && memtable.SkipList.Size >= int(memtable.Capacity*memtable.Threshold) {
 				elements = memtable.getAll()
 				memtable.Clear()
 			}
-			memtable.SkipList.Add(element)
+			memtable.SkipList.Insert(element)
 		}
 	}
 	return elements
@@ -64,10 +64,10 @@ func (memtable *Memtable) GetElement(key string) (SkipList.Element, error) {
 	node, err := memtable.SkipList.Search(key)
 	if err == nil {
 		if node.Element.Tombstone == 1 {
-			return node, errors.New("Not found.")
+			return node.Element, errors.New("Not found.")
 		}
 	}
-	return node, err
+	return node.Element, err
 }
 
 
