@@ -137,7 +137,7 @@ func (merkleTree *MerkleRoot) Deserialize(path string) {
 		return
 	}
 
-	// we can be sure that merkle tree is complete, so when index is out of range we finished setting node children
+	// we can be sure that merkle tree is complete, so when index is out of range we are finished setting node children
 	for index := range(nodes) {
 		indexLeft := 2 * index + 1
 		indexRight := 2 * index + 2
