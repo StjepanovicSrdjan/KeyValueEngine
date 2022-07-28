@@ -2,10 +2,11 @@ package SSTable
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/binary"
-	"io"
+	"errors"
+	"github.com/edsrzf/mmap-go"
 	"os"
+	"strconv"
 )
 
 type SummeryHeader struct {
@@ -22,8 +23,12 @@ type SummeryElement struct {
 	Position uint
 }
 
-func (summeryElement *SummeryElement) GetSize() uint{
-	return 16 + summeryElement.KeySize
+func (summaryElement *SummeryElement) GetSize() uint{
+	return 16 + summaryElement.KeySize
+}
+
+func (summeryHeader *SummeryHeader) GetSize() uint{
+	return 24 + summeryHeader.MinKeySize + summeryHeader.MaxKeySize
 }
 
 func (summaryHeader *SummeryHeader) Write(writer *bufio.Writer) {
@@ -84,40 +89,71 @@ func (summaryHeader *SummeryHeader) Read(reader *bufio.Reader)  {
 	}
 }
 
-func (summaryEntry *SummeryElement) Write(writer *bufio.Writer) {
-	err := binary.Write(writer, binary.LittleEndian, summaryEntry.KeySize)
+func (summaryElement *SummeryElement) Write(writer *bufio.Writer) {
+	err := binary.Write(writer, binary.LittleEndian, summaryElement.KeySize)
 	if err != nil {
 		panic(err)
 	}
 
-	err = binary.Write(writer, binary.LittleEndian, []byte(summaryEntry.Key))
+	err = binary.Write(writer, binary.LittleEndian, []byte(summaryElement.Key))
 	if err != nil {
 		panic(err)
 	}
 
-	err = binary.Write(writer, binary.LittleEndian, summaryEntry.Position)
+	err = binary.Write(writer, binary.LittleEndian, summaryElement.Position)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (summaryEntry *SummeryElement) Read(reader *bufio.Reader)  {
-	err := binary.Read(reader, binary.LittleEndian, &summaryEntry.KeySize)
+func (summaryElement *SummeryElement) Read(reader *bufio.Reader)  {
+	err := binary.Read(reader, binary.LittleEndian, &summaryElement.KeySize)
 	if err != nil {
 		panic(err)
 	}
 
-	keyByteSlice := make([]byte, summaryEntry.KeySize)
+	keyByteSlice := make([]byte, summaryElement.KeySize)
 	err = binary.Read(reader, binary.LittleEndian, &keyByteSlice)
 	if err != nil {
 		panic(err)
 	}
-	summaryEntry.Key = string(keyByteSlice)
+	summaryElement.Key = string(keyByteSlice)
 
-	err = binary.Read(reader, binary.LittleEndian, &summaryEntry.Position)
+	err = binary.Read(reader, binary.LittleEndian, &summaryElement.Position)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (summaryElement *SummeryElement) ReadRange(file *os.File, startIndex int) (error){
+
+	if startIndex < 0 {
+		return errors.New("invalid startIndex")
+	}
+	mmapf, err := mmap.Map(file, mmap.RDONLY, 0)
+	if err != nil {
+		return err
+	}
+	defer mmapf.Unmap()
+
+	if startIndex + 8 >= len(mmapf) {
+		return errors.New("indices invalid")
+	}
+	keySizeByte := make([]byte, 8)
+	copy(keySizeByte, mmapf[startIndex:startIndex+8])
+	keySize, _ := strconv.Atoi(string(keySizeByte))
+	summaryElement.KeySize = uint(keySize)
+
+	keyByte := make([]byte, keySize)
+	copy(keyByte, mmapf[startIndex+8:startIndex+8+keySize])
+	summaryElement.Key = string(keyByte)
+
+	positionByte := make([]byte, 8)
+	copy(positionByte, mmapf[startIndex+8+keySize: startIndex+keySize+16])
+	position, _ := strconv.Atoi(string(positionByte))
+ 	summaryElement.Position = uint(position)
+
+	return  nil
 }
 
 func GetPosition(key string, path string) uint {
@@ -139,19 +175,24 @@ func GetPosition(key string, path string) uint {
 		return 0
 	}
 
-	elements := make([]byte, summaryHeader.ElementBlockSize)
+	/*elements := make([]byte, summaryHeader.ElementBlockSize)
 	_, err = io.ReadFull(reader, elements)
 	if err != nil {
 		panic(err)
 	}
 
 	reader = bufio.NewReader(bytes.NewBuffer(elements))
+	*/
 	prevElem := SummeryElement{}
 	nextElem := SummeryElement{}
+	startIndex := int(summaryHeader.GetSize())
 
 	for {
 		prevElem = nextElem
-		nextElem.Read(reader)
+		err = nextElem.ReadRange(file, startIndex)
+		if err != nil{
+			panic(err)
+		}
 		if prevElem == nextElem {
 			return prevElem.Position
 		}
