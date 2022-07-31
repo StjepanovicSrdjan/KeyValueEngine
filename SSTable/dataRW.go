@@ -20,7 +20,7 @@ func ReadElement(element *Element.Element, reader *bufio.Reader) bool {
 	return e
 }
 
-func getElementByOffset(path string, offset uint64) (*Element.Element) {
+func getElementByPosition(path string, offset uint64) (*Element.Element) {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)

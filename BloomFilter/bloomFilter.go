@@ -1,7 +1,9 @@
 package BloomFilter
 
 import (
+	"encoding/gob"
 	"hash"
+	"os"
 )
 
 type BloomFilter struct{
@@ -12,7 +14,7 @@ type BloomFilter struct{
 	hashFunction []hash.Hash32
 }
 
-func BFConstuctor(expectedEl int, fpRate float64)  *BloomFilter{
+func InitBF(expectedEl int, fpRate float64)  *BloomFilter{
 	size := CalculateM(expectedEl, fpRate)
 	hashNum := CalculateK(expectedEl, size)
 	return &BloomFilter{
@@ -78,5 +80,30 @@ func (bf *BloomFilter) Hash(item []byte) []uint32{
 
 	return result
 
+}
+
+func (bf *BloomFilter) Encode(filterFilePath string) {
+	file, err := os.Create(filterFilePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	encoder := gob.NewEncoder(file)
+	if err = encoder.Encode(&bf); err != nil {
+		panic(err)
+	}
+}
+
+func (bf *BloomFilter) Decode(filterFilePath string) {
+	file, err := os.OpenFile(filterFilePath, os.O_RDWR, 0777)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	decoder := gob.NewDecoder(file)
+	if err = decoder.Decode(&bf); err != nil{
+		panic(err)
+	}
+	bf.hashFunction = CreateHashFunctions(bf.k)
 }
 

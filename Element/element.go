@@ -33,12 +33,12 @@ func CRC32(data []byte) uint32 {
 	return crc32.ChecksumIEEE(data)
 }
 
-func (elem *Element) getSize() uint64{
+func (elem *Element) GetSize() uint64{
 	return 29 + elem.KeySize + elem.ValueSize
 }
 
 func (elem *Element) Encode() []byte {
-	elemBytes := make([]byte, 0, elem.getSize())
+	elemBytes := make([]byte, 0, elem.GetSize())
 	buffer := bytes.NewBuffer(elemBytes)
 
 	err := binary.Write(buffer, binary.LittleEndian, elem.Crc)

@@ -10,24 +10,24 @@ import (
 )
 
 type SummeryHeader struct {
-	MinKeySize uint
+	MinKeySize uint64
 	MinKey string
-	MaxKeySize uint
+	MaxKeySize uint64
 	MaxKey string
-	ElementBlockSize uint
+	ElementBlockSize uint64
 }
 
 type SummeryElement struct {
-	KeySize uint
+	KeySize uint64
 	Key string
-	Position uint
+	Position uint64
 }
 
-func (summaryElement *SummeryElement) GetSize() uint{
+func (summaryElement *SummeryElement) GetSize() uint64{
 	return 16 + summaryElement.KeySize
 }
 
-func (summeryHeader *SummeryHeader) GetSize() uint{
+func (summeryHeader *SummeryHeader) GetSize() uint64{
 	return 24 + summeryHeader.MinKeySize + summeryHeader.MaxKeySize
 }
 
@@ -142,7 +142,7 @@ func (summaryElement *SummeryElement) ReadRange(file *os.File, startIndex int) (
 	keySizeByte := make([]byte, 8)
 	copy(keySizeByte, mmapf[startIndex:startIndex+8])
 	keySize, _ := strconv.Atoi(string(keySizeByte))
-	summaryElement.KeySize = uint(keySize)
+	summaryElement.KeySize = uint64(keySize)
 
 	keyByte := make([]byte, keySize)
 	copy(keyByte, mmapf[startIndex+8:startIndex+8+keySize])
@@ -151,12 +151,12 @@ func (summaryElement *SummeryElement) ReadRange(file *os.File, startIndex int) (
 	positionByte := make([]byte, 8)
 	copy(positionByte, mmapf[startIndex+8+keySize: startIndex+keySize+16])
 	position, _ := strconv.Atoi(string(positionByte))
- 	summaryElement.Position = uint(position)
+ 	summaryElement.Position = uint64(position)
 
 	return  nil
 }
 
-func GetPosition(key string, path string) uint {
+func GetPosition(key string, path string) uint64 {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
