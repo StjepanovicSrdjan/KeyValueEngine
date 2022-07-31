@@ -3,7 +3,10 @@ package SSTable
 import (
 	"KeyValueEngine/BloomFilter"
 	"KeyValueEngine/Element"
+	"KeyValueEngine/MerkleTree"
 	"bufio"
+	"encoding/binary"
+	"errors"
 	"os"
 )
 
@@ -14,6 +17,68 @@ type SSTable struct {
 	FilterFilePath string
 	MetadataFilePath string
 	TOCFilePath string
+}
+
+func InitSSTable(elements []Element.Element, dataPath, indexPath, summaryPath,
+	filterPath, metadataPath, tocPath string) *SSTable {
+	createDIS(elements, dataPath, indexPath, summaryPath)
+	createFilter(elements, filterPath)
+	createMetadata(elements, metadataPath)
+	createTOC(dataPath, indexPath, summaryPath, filterPath, metadataPath, tocPath)
+
+	return &SSTable{dataPath, indexPath, summaryPath,
+		filterPath, metadataPath, tocPath}
+}
+
+func (ssTable *SSTable) GetElement(key string) (*Element.Element, error) {
+	indexPosition := GetPositionInIndex(key, ssTable.SummeryFilePath)
+	if indexPosition == 0 {
+		return &Element.Element{}, errors.New("Key not found.")
+	}
+
+	dataPosition, found := getPositionInData(key, ssTable.IndexFilePath, indexPosition, 12)
+	if !found {
+		return &Element.Element{}, errors.New("Key not found.")
+	}
+
+	element := getElementByPosition(ssTable.DataFilePath, dataPosition)
+	if element.Key == "" {
+		return &Element.Element{}, errors.New("Key not found.")
+	}
+
+	return element, nil
+}
+
+func (ssTable *SSTable) Delete() {
+	err := os.Remove(ssTable.DataFilePath)
+	if err!= nil {
+		panic(err)
+	}
+
+	err = os.Remove(ssTable.IndexFilePath)
+	if err!= nil {
+		panic(err)
+	}
+
+	err = os.Remove(ssTable.SummeryFilePath)
+	if err!= nil {
+		panic(err)
+	}
+
+	err = os.Remove(ssTable.FilterFilePath)
+	if err!= nil {
+		panic(err)
+	}
+
+	err = os.Remove(ssTable.MetadataFilePath)
+	if err!= nil {
+		panic(err)
+	}
+
+	err = os.Remove(ssTable.TOCFilePath)
+	if err!= nil {
+		panic(err)
+	}
 }
 
 
@@ -94,4 +159,57 @@ func createFilter(elements []Element.Element, filterPath string) {
 		filter.Add(recordElement.Key)
 	}
 	filter.Encode(filterPath)
+}
+
+func createMetadata(elements []Element.Element, metadataPath string) {
+	elementsBytes :=  make([][]byte, 0)
+	for _, element := range elements {
+		elementBytes := element.Encode()
+		elementsBytes = append(elementsBytes, elementBytes)
+	}
+
+	metadata := MerkleTree.InitMerkleTree(elementsBytes)
+	metadata.Serialize(metadataPath)
+}
+
+func createTOC(tocPath, dataPath, indexPath, summeryPath, metadataPath, filterPath string) {
+	tocFile, err := os.OpenFile(tocPath, os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		panic(err)
+	}
+	tocFileWriter := bufio.NewWriter(tocFile)
+
+	err = binary.Write(tocFileWriter, binary.LittleEndian, []byte(dataPath + "\n"))
+	if err != nil {
+		return
+	}
+
+	err = binary.Write(tocFileWriter, binary.LittleEndian, []byte(indexPath + "\n"))
+	if err != nil {
+		return
+	}
+
+	err = binary.Write(tocFileWriter, binary.LittleEndian, []byte(summeryPath + "\n"))
+	if err != nil {
+		return
+	}
+
+	err = binary.Write(tocFileWriter, binary.LittleEndian, []byte(filterPath + "\n"))
+	if err != nil {
+		return
+	}
+
+	err = binary.Write(tocFileWriter, binary.LittleEndian, []byte(metadataPath + "\n"))
+	if err != nil {
+		return
+	}
+
+	err = tocFileWriter.Flush()
+	if err != nil {
+		return
+	}
+	err = tocFile.Close()
+	if err != nil {
+		return
+	}
 }

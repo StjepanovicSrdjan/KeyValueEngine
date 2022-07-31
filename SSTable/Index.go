@@ -96,7 +96,7 @@ func (indexElement *IndexElement) ReadRange(file *os.File, startIndex int) (erro
 	return  nil
 }
 
-func getPositionInDataTableForKey(key string, filePath string, position uint64, intervalSize uint64) (uint64, bool) {
+func getPositionInData(key string, filePath string, position uint64, intervalSize uint64) (uint64, bool) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		panic(err)
@@ -112,7 +112,7 @@ func getPositionInDataTableForKey(key string, filePath string, position uint64, 
 */
 	currentIndexEl := IndexElement{}
 	startIndex := 0
-	for i := uint64(0); i < intervalSize; i++ {
+	for i := position; i < intervalSize; i++ {
 		err = currentIndexEl.ReadRange(file, startIndex)
 		if err != nil {
 			return 0, false

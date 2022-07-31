@@ -156,7 +156,7 @@ func (summaryElement *SummeryElement) ReadRange(file *os.File, startIndex int) (
 	return  nil
 }
 
-func GetPosition(key string, path string) uint64 {
+func GetPositionInIndex(key string, path string) uint64 {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
