@@ -14,13 +14,13 @@ type BloomFilter struct{
 	hashFunction []hash.Hash32
 }
 
-func InitBF(expectedEl int, fpRate float64)  *BloomFilter{
+func InitBF(expectedEl int, fpRate float64)  *BloomFilter {
 	size := CalculateM(expectedEl, fpRate)
 	hashNum := CalculateK(expectedEl, size)
 	return &BloomFilter{
-		bitfield: make([]bool, size),
-		m: size,
-		k: hashNum,
+		bitfield:     make([]bool, size),
+		m:            size,
+		k:            hashNum,
 		hashFunction: CreateHashFunctions(hashNum),
 	}
 }

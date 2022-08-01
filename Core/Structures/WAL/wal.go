@@ -1,7 +1,7 @@
 package WAL
 
 import (
-	"KeyValueEngine/Element"
+	"KeyValueEngine/Core/Structures/Element"
 	"github.com/edsrzf/mmap-go"
 	"hash/crc32"
 	"os"

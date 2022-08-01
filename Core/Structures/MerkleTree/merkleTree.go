@@ -40,7 +40,7 @@ func CreateLeaves(data [][]byte) []*Node {
 	return leaves
 }
 
-func InitMerkleTree(data [][]byte) *MerkleRoot{
+func InitMerkleTree(data [][]byte) *MerkleRoot {
 	leaves := CreateLeaves(data)
 	merkleTree := MerkleRoot{root: nil}
 	merkleTree.root = merkleTree.BottomUpBuild(leaves)

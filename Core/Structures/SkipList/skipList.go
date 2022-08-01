@@ -1,10 +1,10 @@
 package SkipList
 
 import (
+	"KeyValueEngine/Core/Structures/Element"
 	"errors"
 	"fmt"
 	"math/rand"
-	"KeyValueEngine/Element"
 )
 
 const (
@@ -33,7 +33,7 @@ type SkipList struct {
 	Size int
 }
 
-func InitSkipList() *SkipList{
+func InitSkipList() *SkipList {
 	var headElem = Element.Element{
 		Crc: 0,
 		Timestamp: 0,

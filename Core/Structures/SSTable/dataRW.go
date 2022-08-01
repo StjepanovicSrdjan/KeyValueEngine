@@ -1,7 +1,7 @@
 package SSTable
 
 import (
-	"KeyValueEngine/Element"
+	"KeyValueEngine/Core/Structures/Element"
 	"bufio"
 	"encoding/binary"
 	"os"

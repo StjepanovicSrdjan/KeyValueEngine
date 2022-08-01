@@ -1,8 +1,8 @@
 package Memtable
 
 import (
-	"KeyValueEngine/SkipList"
-	"KeyValueEngine/Element"
+	"KeyValueEngine/Core/Structures/Element"
+	"KeyValueEngine/Core/Structures/SkipList"
 	"errors"
 )
 

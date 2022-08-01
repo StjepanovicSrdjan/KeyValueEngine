@@ -1,9 +1,9 @@
 package SSTable
 
 import (
-	"KeyValueEngine/BloomFilter"
-	"KeyValueEngine/Element"
-	"KeyValueEngine/MerkleTree"
+	"KeyValueEngine/Core/Structures/BloomFilter"
+	"KeyValueEngine/Core/Structures/Element"
+	"KeyValueEngine/Core/Structures/MerkleTree"
 	"bufio"
 	"encoding/binary"
 	"errors"
