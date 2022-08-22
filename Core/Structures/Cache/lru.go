@@ -2,6 +2,7 @@ package Cache
 
 import (
 	"container/list"
+	"KeyValueEngine/Core/Structures/Element"
 )
 
 type ListElement struct {
@@ -33,11 +34,10 @@ func (cache *CacheLRU) SetCapacity(cap int) {
 	cache.capacity = cap
 }
 
-func (cache *CacheLRU) Add(key string, value []byte) {
-	elem, found := cache.elements[key]
+func (cache *CacheLRU) Add(element Element.Element) {
+	elem, found := cache.elements[element.Key]
 	if found {
-		newElement := ListElement{key: key, value: value}
-		elem.Value = newElement
+		elem.Value = element
 		cache.queue.MoveToFront(elem)
 		return
 	}
@@ -45,12 +45,30 @@ func (cache *CacheLRU) Add(key string, value []byte) {
 	if cache.size == cache.capacity {
 		oldest := cache.queue.Back()
 		cache.queue.Remove(oldest)
-		delete(cache.elements, oldest.Value.(ListElement).key)
+		delete(cache.elements, oldest.Value.(Element.Element).Key)
 		cache.size--
 	}
 
-	newElement := ListElement{key: key, value: value}
-	listEl := cache.queue.PushFront(newElement)
-	cache.elements[key] = listEl
+	listEl := cache.queue.PushFront(element)
+	cache.elements[element.Key] = listEl
 	cache.size++
+}
+
+func (cache *CacheLRU) Delete(key string) {
+	elem, found := cache.elements[key]
+	if found{
+		delete(cache.elements, key)
+		cache.queue.Remove(elem)
+		cache.size--
+	}
+}
+
+func (cache *CacheLRU) Get(key string) (Element.Element, bool){
+	elem, found := cache.elements[key]
+	if !found {
+		return Element.Element{}, false
+	}
+
+	cache.queue.MoveToFront(elem)
+	return elem.Value.(Element.Element), true
 }
