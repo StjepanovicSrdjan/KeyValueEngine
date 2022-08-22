@@ -3,8 +3,6 @@ package SSTable
 import (
 	"bufio"
 	"encoding/binary"
-	"errors"
-	"github.com/edsrzf/mmap-go"
 	"os"
 	"strconv"
 )
@@ -125,9 +123,46 @@ func (summaryElement *SummeryElement) Read(reader *bufio.Reader)  {
 	}
 }
 
-func (summaryElement *SummeryElement) ReadRange(file *os.File, startIndex int) (error){
+func (summaryElement *SummeryElement) ReadRange(file *os.File) (error){
 
-	if startIndex < 0 {
+	keySizeByte := make([]byte, 8)
+	_, err := file.Seek(8, 1)
+	if err != nil {
+		return err
+	}
+	_, err = file.Read(keySizeByte)
+	if err != nil {
+		return err
+	}
+	keySize, _ := strconv.Atoi(string(keySizeByte))
+	summaryElement.KeySize = uint64(keySize)
+
+	keyByte := make([]byte, keySize)
+	_, err = file.Seek(8, 1)
+	if err != nil {
+		return err
+	}
+	_, err = file.Read(keyByte)
+	if err != nil {
+		return err
+	}
+	summaryElement.Key = string(keyByte)
+
+	positionByte := make([]byte, 8)
+	_, err = file.Seek(int64(keySize), 1)
+	if err != nil {
+		return err
+	}
+	_, err = file.Read(positionByte)
+	if err != nil {
+		return err
+	}
+	position, _ := strconv.Atoi(string(positionByte))
+	summaryElement.Position = uint64(position)
+
+	return nil
+
+	/*if startIndex < 0 {
 		return errors.New("invalid startIndex")
 	}
 	mmapf, err := mmap.Map(file, mmap.RDONLY, 0)
@@ -153,7 +188,7 @@ func (summaryElement *SummeryElement) ReadRange(file *os.File, startIndex int) (
 	position, _ := strconv.Atoi(string(positionByte))
  	summaryElement.Position = uint64(position)
 
-	return  nil
+	return  nil*/
 }
 
 func GetPositionInIndex(key string, path string) uint64 {
@@ -175,21 +210,12 @@ func GetPositionInIndex(key string, path string) uint64 {
 		return 0
 	}
 
-	/*elements := make([]byte, summaryHeader.ElementBlockSize)
-	_, err = io.ReadFull(reader, elements)
-	if err != nil {
-		panic(err)
-	}
-
-	reader = bufio.NewReader(bytes.NewBuffer(elements))
-	*/
 	prevElem := SummeryElement{}
 	nextElem := SummeryElement{}
-	startIndex := int(summaryHeader.GetSize())
 
 	for {
 		prevElem = nextElem
-		err = nextElem.ReadRange(file, startIndex)
+		err = nextElem.ReadRange(file)
 		if err != nil{
 			panic(err)
 		}

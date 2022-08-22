@@ -78,7 +78,7 @@ func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 	indexElement.KeySize = uint64(keySize)
 
 	keyByte := make([]byte, keySize)
-	file.Seek(8, 1)
+	_, err = file.Seek(8, 1)
 	if err != nil {
 		return err
 	}
@@ -89,6 +89,7 @@ func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 	indexElement.Key = string(keyByte)
 
 	positionByte := make([]byte, 8)
+	_, err = file.Seek(int64(keySize), 1)
 	if err != nil {
 		return err
 	}
