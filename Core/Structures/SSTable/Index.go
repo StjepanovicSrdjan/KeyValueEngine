@@ -66,11 +66,7 @@ func (indexElement *IndexElement) Read(reader *bufio.Reader) bool {
 func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 
 	keySizeByte := make([]byte, 8)
-	_, err := file.Seek(8, 1)
-	if err != nil {
-		return err
-	}
-	_, err = file.Read(keySizeByte)
+	_, err := file.Read(keySizeByte)
 	if err != nil {
 		return err
 	}
@@ -99,6 +95,11 @@ func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 	}
 	position, _ := strconv.Atoi(string(positionByte))
 	indexElement.Position = uint64(position)
+
+	_, err = file.Seek(8, 1)
+	if err != nil {
+		return err
+	}
 
 	return nil
 
