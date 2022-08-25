@@ -3,6 +3,7 @@ package SSTable
 import (
 	"bufio"
 	"encoding/binary"
+	"io"
 	"os"
 	"strconv"
 )
@@ -217,14 +218,14 @@ func GetPositionInIndex(key string, path string) uint64 {
 	for {
 		prevElem = nextElem
 		err = nextElem.ReadRange(file)
-		if err != nil{
+		if err != nil && err != io.EOF{
 			panic(err)
 		}
 		if prevElem == nextElem {
 			return prevElem.Position
 		}
 
-		if prevElem.Key <= key && key < nextElem.Key {
+		if (prevElem.Key <= key && key < nextElem.Key) || err == io.EOF{
 			break
 		}
 	}
