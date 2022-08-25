@@ -3,8 +3,6 @@ package SSTable
 import (
 	"bufio"
 	"encoding/binary"
-	"errors"
-	"github.com/edsrzf/mmap-go"
 	"io"
 	"os"
 	"strconv"
@@ -65,12 +63,47 @@ func (indexElement *IndexElement) Read(reader *bufio.Reader) bool {
 	return false
 }
 
-func (indexElement *IndexElement) ReadRange(file *os.File, startIndex int) (error){
+func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 
-	if startIndex < 0 {
-		return errors.New("invalid startIndex")
+	keySizeByte := make([]byte, 8)
+	_, err := file.Read(keySizeByte)
+	if err != nil {
+		return err
 	}
-	mmapf, err := mmap.Map(file, mmap.RDONLY, 0)
+	keySize, _ := strconv.Atoi(string(keySizeByte))
+	indexElement.KeySize = uint64(keySize)
+
+	keyByte := make([]byte, keySize)
+	_, err = file.Seek(8, 1)
+	if err != nil {
+		return err
+	}
+	_, err = file.Read(keyByte)
+	if err != nil {
+		return err
+	}
+	indexElement.Key = string(keyByte)
+
+	positionByte := make([]byte, 8)
+	_, err = file.Seek(int64(keySize), 1)
+	if err != nil {
+		return err
+	}
+	_, err = file.Read(positionByte)
+	if err != nil {
+		return err
+	}
+	position, _ := strconv.Atoi(string(positionByte))
+	indexElement.Position = uint64(position)
+
+	_, err = file.Seek(8, 1)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+	/*, err := mmap.Map(file, mmap.RDONLY, 0)
 	if err != nil {
 		return err
 	}
@@ -92,8 +125,7 @@ func (indexElement *IndexElement) ReadRange(file *os.File, startIndex int) (erro
 	copy(positionByte, mmapf[startIndex+8+keySize: startIndex+keySize+16])
 	position, _ := strconv.Atoi(string(positionByte))
 	indexElement.Position = uint64(position)
-
-	return  nil
+*/
 }
 
 func getPositionInData(key string, filePath string, position uint64, intervalSize uint64) (uint64, bool) {
@@ -111,9 +143,9 @@ func getPositionInData(key string, filePath string, position uint64, intervalSiz
 	}
 */
 	currentIndexEl := IndexElement{}
-	startIndex := 0
+	_, _ = file.Seek(0, 0)
 	for i := position; i < intervalSize; i++ {
-		err = currentIndexEl.ReadRange(file, startIndex)
+		err = currentIndexEl.ReadRange(file)
 		if err != nil {
 			return 0, false
 		}
