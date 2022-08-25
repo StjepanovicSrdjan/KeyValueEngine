@@ -66,3 +66,22 @@ func (lsm *LSM) UploadData() {
 	}
 }
 
+func (lsm *LSM) Add(ssTable SSTable.SSTable) {
+	lsm.ssTables[0] = append(lsm.ssTables[0], ssTable)
+	for i := 0; i < int(lsm.maxLevel); i++ {
+		if len(lsm.ssTables[i]) < int(lsm.maxTablesInLevel){
+			break
+		}
+
+		newSStable := lsm.MergeLevel(i)
+		lsm.ssTables[i] = append(lsm.ssTables[i], newSStable)
+		for j := 0; j < len(lsm.ssTables[i]); j++ {
+			lsm.ssTables[i][j].Delete()
+		}
+	}
+
+}
+
+func (lsm *LSM) MergeLevel(level int) (SSTable.SSTable) {
+	return SSTable.SSTable{}
+}

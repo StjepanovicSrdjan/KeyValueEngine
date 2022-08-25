@@ -17,3 +17,4 @@ func getLevelAndIndex (fileName string) (int, int) {
 	}
 	return level, index
 }
+
