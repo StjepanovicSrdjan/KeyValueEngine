@@ -6,25 +6,25 @@ import (
 )
 
 type Config struct {
-	maxWALSize int           	 `yaml:"wal_max_size"`
-	deleteWALSize int		 	 `yaml:"wal_delete_size"`
-	memtableCapacity int	     `yaml:"mem_cap"`
-	memtableTreshold float64	 `yaml:"mem_treshold"`
-	cacheSize int			 	 `yaml:"cache_size"`
-	lsmMaxLevel int			 	 `yaml:"lsm_level"`
-	lsmMaxIndex int			 	 `yaml:"lsm_index"`
+	MaxWALSize    int 			 `yaml:"wal_max_size"`
+	DeleteWALSize int 			  `yaml:"wal_delete_size"`
+	MemtableCapacity int	     `yaml:"mem_cap"`
+	MemtableTreshold float64	 `yaml:"mem_treshold"`
+	CacheSize int			 	 `yaml:"cache_size"`
+	LsmMaxLevel int			 	 `yaml:"lsm_level"`
+	LsmMaxIndex int			 	 `yaml:"lsm_index"`
 }
 
-func (config *Config) loadConfig(){
+func (config *Config) LoadConfig(){
 	file, err := ioutil.ReadFile("data/config/config.yaml")
 	if err != nil || len(file) == 0 {
-		config.maxWALSize = 9
-		config.deleteWALSize = 5
-		config.lsmMaxIndex = 5
-		config.lsmMaxLevel = 4
-		config.memtableCapacity = 10
-		config.memtableTreshold = 0.7
-		config.cacheSize = 10
+		config.MaxWALSize = 9
+		config.DeleteWALSize = 5
+		config.LsmMaxIndex = 5
+		config.LsmMaxLevel = 4
+		config.MemtableCapacity = 10
+		config.MemtableTreshold = 0.7
+		config.CacheSize = 10
 	} else {
 		err = yaml.Unmarshal(file, config)
 		if err != nil {
