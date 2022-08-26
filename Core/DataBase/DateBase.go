@@ -31,6 +31,8 @@ func InitDataBase() (*DateBase){
 		wal: *wal,
 		lsm: *lsm,
 		cache: *cache,
+		hll: *HyperLogLog.InitHLL(4),
+		cms: *CountMinSketch.InitCMS(1, 1),
 	}
 }
 
