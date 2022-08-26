@@ -20,6 +20,23 @@ func ReadElement(element *Element.Element, reader *bufio.Reader) bool {
 	return e
 }
 
+func ReadAll(path string) ([]Element.Element) {
+	file, _ := os.OpenFile(path, os.O_RDONLY, 0777)
+
+	elements := make([]Element.Element, 0)
+	reader := bufio.NewReader(file)
+	currentElement := Element.Element{}
+
+	for {
+		e := ReadElement(&currentElement, reader)
+		if e {
+			break
+		}
+		elements = append(elements, currentElement)
+	}
+	return elements
+}
+
 func getElementByPosition(path string, offset uint64) (*Element.Element) {
 	file, err := os.Open(path)
 	if err != nil {

@@ -1,7 +1,5 @@
 package WritePath
 
-import "fmt"
+func Put(key, value string) {
 
-func test() {
-	fmt.Println("test")
 }
