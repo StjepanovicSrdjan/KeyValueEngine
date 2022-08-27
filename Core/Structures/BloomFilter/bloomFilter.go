@@ -7,10 +7,10 @@ import (
 )
 
 type BloomFilter struct{
-	bitfield []bool
-	n uint
-	k uint
-	m uint
+	Bitfield []bool
+	N uint
+	K            uint
+	M            uint
 	hashFunction []hash.Hash32
 }
 
@@ -18,9 +18,9 @@ func InitBF(expectedEl int, fpRate float64)  *BloomFilter {
 	size := CalculateM(expectedEl, fpRate)
 	hashNum := CalculateK(expectedEl, size)
 	return &BloomFilter{
-		bitfield:     make([]bool, size),
-		m:            size,
-		k:            hashNum,
+		Bitfield:     make([]bool, size),
+		M:            size,
+		K:            hashNum,
 		hashFunction: CreateHashFunctions(hashNum),
 	}
 }
@@ -32,17 +32,17 @@ func (bf *BloomFilter) Add(item string) {
 	i := uint(0)
 
 	for{
-		if i >= bf.k{
+		if i >= bf.K {
 			break
 		}
 
-		index := uint(hashValues[i]) % bf.m
-		bf.bitfield[uint(index)] = true
+		index := uint(hashValues[i]) % bf.M
+		bf.Bitfield[uint(index)] = true
 
 		i += 1
 	}
 
-	bf.n += 1
+	bf.N += 1
 
 }
 
@@ -53,11 +53,11 @@ func (bf *BloomFilter) Contains(item string) bool{
 	i := uint(0)
 
 	for{
-		if i >= bf.k{
+		if i >= bf.K {
 			break
 		}
-		index := uint(hashValues[i]) % bf.m
-		if bf.bitfield[uint(index)] == false{
+		index := uint(hashValues[i]) % bf.M
+		if bf.Bitfield[uint(index)] == false{
 			return false
 		}
 		i += 1
@@ -104,6 +104,6 @@ func (bf *BloomFilter) Decode(filterFilePath string) {
 	if err = decoder.Decode(&bf); err != nil{
 		panic(err)
 	}
-	bf.hashFunction = CreateHashFunctions(bf.k)
+	bf.hashFunction = CreateHashFunctions(bf.K)
 }
 

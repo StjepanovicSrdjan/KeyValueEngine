@@ -88,7 +88,7 @@ func (merkleTree *MerkleRoot) Serialize(path string) {
 	queue := make([]*Node, 0, 1)
 	queue = append(queue, merkleTree.root)
 
-	for len(nodeList) > 0{
+	for len(queue) > 0{
 		currentNode := queue[0]
 		queue = queue[1:]
 
