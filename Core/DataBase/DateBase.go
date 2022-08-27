@@ -4,13 +4,17 @@ import (
 	"KeyValueEngine/Core/Structures/Cache"
 	"KeyValueEngine/Core/Structures/Config"
 	"KeyValueEngine/Core/Structures/CountMinSketch"
+	"KeyValueEngine/Core/Structures/Element"
 	"KeyValueEngine/Core/Structures/HyperLogLog"
 	"KeyValueEngine/Core/Structures/LSMTree"
 	"KeyValueEngine/Core/Structures/Memtable"
+	"KeyValueEngine/Core/Structures/SSTable"
 	"KeyValueEngine/Core/Structures/WAL"
+	"fmt"
+	"strconv"
 )
 
-type DateBase struct {
+type DataBase struct {
 	wal WAL.WAL
 	lsm LSMTree.LSM
 	cache Cache.CacheLRU
@@ -18,7 +22,7 @@ type DateBase struct {
 	cms CountMinSketch.CountMinSketch
 }
 
-func InitDataBase() (*DateBase){
+func InitDataBase() (*DataBase){
 	var config Config.Config
 	config.LoadConfig()
 
@@ -27,12 +31,44 @@ func InitDataBase() (*DateBase){
 	lsm := LSMTree.InitLSM(*memtable, uint16(config.LsmMaxLevel), uint16(config.LsmMaxIndex))
 	cache := Cache.InitCache(config.CacheSize)
 
-	return &DateBase{
+	return &DataBase{
 		wal: *wal,
 		lsm: *lsm,
 		cache: *cache,
 		hll: *HyperLogLog.InitHLL(4),
 		cms: *CountMinSketch.InitCMS(1, 1),
 	}
+}
+
+func (db *DataBase) Put(key, value string) {
+	valueByte := []byte(value)
+	element := Element.InitElement(key, valueByte, 0)
+
+	if !db.wal.Add(key, valueByte){
+		panic("WAL ERROR")
+	}
+
+	elements := db.lsm.Memtable.Add(*element)
+	if elements != nil {
+
+		level := 0
+		index := LSMTree.GetLastIndex(0)
+
+		newLevel := strconv.Itoa(level)
+		newIndex := strconv.Itoa(index)
+		DataFilePath := "data/data/data_" + newLevel + "_" + newIndex + ".bin"
+		IndexFilePath := "data/index/index_" + newLevel + "_" + newIndex + ".bin"
+		SummeryFilePath := "data/summery/summery_" + newLevel + "_" + newIndex + ".bin"
+		FilterFilePath := "data/filer/filter_" + newLevel + "_" + newIndex + ".bin"
+		MetadataFilePath := "data/metadata/metadata_" + newLevel + "_" + newIndex + ".bin"
+		TOCFilePath := "data/TOC/toc_" + newLevel + "_" + newIndex + ".bin"
+
+		sstable := SSTable.InitSSTable(elements, DataFilePath, IndexFilePath, SummeryFilePath, FilterFilePath, MetadataFilePath,
+			TOCFilePath)
+
+		db.lsm.Add(*sstable)
+
+	}
+	fmt.Println("finish")
 }
 
