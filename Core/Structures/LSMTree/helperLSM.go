@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func getLevelAndIndex (fileName string) (int, int) {
+func GetLevelAndIndex(fileName string) (int, int) {
 	tokens := strings.Split(fileName, "_")
 	level, err := strconv.Atoi(tokens[1])
 	if err != nil {
@@ -19,7 +19,7 @@ func getLevelAndIndex (fileName string) (int, int) {
 	return level, index
 }
 
-func getLastIndex(level int) (int){
+func GetLastIndex(level int) (int){
 	currentHighest := 0
 	files, _ := ioutil.ReadDir("data/data")
 

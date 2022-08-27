@@ -20,7 +20,7 @@ type Element struct {
 	Value     []byte
 }
 
-func NewElement(key string, value []byte, isDeleted byte) *Element {
+func InitElement(key string, value []byte, isDeleted byte) *Element {
 	crc := CRC32(value)
 	timestamp := time.Now().Unix()
 	tombstone := isDeleted
