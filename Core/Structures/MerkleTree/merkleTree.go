@@ -93,10 +93,14 @@ func (merkleTree *MerkleRoot) Serialize(path string) {
 		queue = queue[1:]
 
 		// add is nil check if needed
-		queue = append(queue, currentNode.left)
-		queue = append(queue, currentNode.right)
-		nodeList = append(nodeList, currentNode.left)
-		nodeList = append(nodeList, currentNode.right)
+		if currentNode.left != nil {
+			queue = append(queue, currentNode.left)
+			nodeList = append(nodeList, currentNode.left)
+		}
+		if currentNode.right != nil {
+			queue = append(queue, currentNode.right)
+			nodeList = append(nodeList, currentNode.right)
+		}
 	}
 
 	for i := range(nodeList) {
