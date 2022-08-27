@@ -59,7 +59,7 @@ func (db *DataBase) Put(key, value string) {
 		DataFilePath := "data/data/data_" + newLevel + "_" + newIndex + ".bin"
 		IndexFilePath := "data/index/index_" + newLevel + "_" + newIndex + ".bin"
 		SummeryFilePath := "data/summery/summery_" + newLevel + "_" + newIndex + ".bin"
-		FilterFilePath := "data/filer/filter_" + newLevel + "_" + newIndex + ".bin"
+		FilterFilePath := "data/filter/filter_" + newLevel + "_" + newIndex + ".bin"
 		MetadataFilePath := "data/metadata/metadata_" + newLevel + "_" + newIndex + ".bin"
 		TOCFilePath := "data/TOC/toc_" + newLevel + "_" + newIndex + ".bin"
 
