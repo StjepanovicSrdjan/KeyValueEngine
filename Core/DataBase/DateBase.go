@@ -72,3 +72,26 @@ func (db *DataBase) Put(key, value string) {
 	fmt.Println("finish")
 }
 
+func (db *DataBase) Get(key string) (bool, []byte){
+	element, found := db.cache.Get(key)
+	if found{
+		return true, element.Value
+	}
+
+	element, err := db.lsm.Memtable.GetElement(key)
+	if err == nil {
+		db.cache.Add(element)
+		return true, element.Value
+	}
+
+	latestElement := Element.Element{}
+	var foundSS bool
+	for i := 0; i < int(db.lsm.MaxLevel); i++ {
+		for j := 0; j < len(db.lsm.SSTables[i]); j++ {
+			
+		}
+	}
+
+
+}
+
