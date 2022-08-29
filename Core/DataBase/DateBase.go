@@ -92,11 +92,11 @@ func (db *DataBase) Get(key string) (bool, []byte){
 			bfPath := db.lsm.SSTables[i][j].FilterFilePath
 			bf := BloomFilter.BloomFilter{}
 			bf.Decode(bfPath)
-			found := bf.Contains(key)
-			if !found{
+			_ = bf.Contains(key)
+			/*if !found{
 				continue
 			}
-
+*/
 			currentElement, err := db.lsm.SSTables[i][j].GetElement(key)
 			if err != nil {
 				continue

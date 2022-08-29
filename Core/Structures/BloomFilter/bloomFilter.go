@@ -27,7 +27,7 @@ func InitBF(expectedEl int, fpRate float64)  *BloomFilter {
 
 func (bf *BloomFilter) Add(item string) {
 	arr := []byte(item)
-	hashValues := bf.Hash(arr)
+	//hashValues := bf.Hash(arr)
 
 	i := uint(0)
 
@@ -35,8 +35,11 @@ func (bf *BloomFilter) Add(item string) {
 		if i >= bf.K {
 			break
 		}
-
-		index := uint(hashValues[i]) % bf.M
+		bf.hashFunction[i].Reset()
+		if _, err := bf.hashFunction[i].Write(arr); err != nil{
+			panic(err)
+		}
+		index := bf.hashFunction[i].Sum32() % uint32(bf.M)
 		bf.Bitfield[uint(index)] = true
 
 		i += 1
@@ -48,7 +51,7 @@ func (bf *BloomFilter) Add(item string) {
 
 func (bf *BloomFilter) Contains(item string) bool{
 	arr := []byte(item)
-	hashValues := bf.Hash(arr)
+	//hashValues := bf.Hash(arr)
 
 	i := uint(0)
 
@@ -56,7 +59,11 @@ func (bf *BloomFilter) Contains(item string) bool{
 		if i >= bf.K {
 			break
 		}
-		index := uint(hashValues[i]) % bf.M
+		bf.hashFunction[i].Reset()
+		if _, err := bf.hashFunction[i].Write(arr); err != nil{
+			panic(err)
+		}
+		index := bf.hashFunction[i].Sum32() % uint32(bf.M)
 		if bf.Bitfield[uint(index)] == false{
 			return false
 		}

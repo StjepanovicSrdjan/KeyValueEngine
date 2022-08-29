@@ -81,7 +81,7 @@ func (wal *WAL) Add (key string, value []byte) bool{
 		}
 		wal.filePath = "data/segments/wal" + strconv.Itoa(n+1) + ".bin"
 
-		segments, err := os.ReadDir("Segments")
+		segments, err := os.ReadDir("data/segments")
 		if err != nil{
 			return false
 		}

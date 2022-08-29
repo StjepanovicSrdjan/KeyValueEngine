@@ -105,23 +105,24 @@ func (summaryElement *SummeryElement) Write(writer *bufio.Writer) {
 	}
 }
 
-func (summaryElement *SummeryElement) Read(reader *bufio.Reader)  {
+func (summaryElement *SummeryElement) Read(reader *bufio.Reader) error {
 	err := binary.Read(reader, binary.LittleEndian, &summaryElement.KeySize)
 	if err != nil {
-		panic(err)
+		return(err)
 	}
 
 	keyByteSlice := make([]byte, summaryElement.KeySize)
 	err = binary.Read(reader, binary.LittleEndian, &keyByteSlice)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	summaryElement.Key = string(keyByteSlice)
 
 	err = binary.Read(reader, binary.LittleEndian, &summaryElement.Position)
 	if err != nil {
-		panic(err)
+		return(err)
 	}
+	return nil
 }
 
 func (summaryElement *SummeryElement) ReadRange(file *os.File) (error){
@@ -164,36 +165,9 @@ func (summaryElement *SummeryElement) ReadRange(file *os.File) (error){
 
 	return nil
 
-	/*if startIndex < 0 {
-		return errors.New("invalid startIndex")
-	}
-	mmapf, err := mmap.Map(file, mmap.RDONLY, 0)
-	if err != nil {
-		return err
-	}
-	defer mmapf.Unmap()
-
-	if startIndex + 8 >= len(mmapf) {
-		return errors.New("indices invalid")
-	}
-	keySizeByte := make([]byte, 8)
-	copy(keySizeByte, mmapf[startIndex:startIndex+8])
-	keySize, _ := strconv.Atoi(string(keySizeByte))
-	summaryElement.KeySize = uint64(keySize)
-
-	keyByte := make([]byte, keySize)
-	copy(keyByte, mmapf[startIndex+8:startIndex+8+keySize])
-	summaryElement.Key = string(keyByte)
-
-	positionByte := make([]byte, 8)
-	copy(positionByte, mmapf[startIndex+8+keySize: startIndex+keySize+16])
-	position, _ := strconv.Atoi(string(positionByte))
- 	summaryElement.Position = uint64(position)
-
-	return  nil*/
 }
 
-func GetPositionInIndex(key string, path string) uint64 {
+func GetPositionInIndex(key string, path string) (uint64, bool) {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -205,11 +179,11 @@ func GetPositionInIndex(key string, path string) uint64 {
 	summaryHeader.Read(reader)
 
 	if summaryHeader.MinKey > key {
-		return 0
+		return 0, false
 	}
 
 	if summaryHeader.MaxKey < key {
-		return 0
+		return 0, false
 	}
 
 	prevElem := SummeryElement{}
@@ -217,21 +191,20 @@ func GetPositionInIndex(key string, path string) uint64 {
 
 	for {
 		prevElem = nextElem
-		err = nextElem.ReadRange(file)
+		err = nextElem.Read(reader)
 		if err != nil && err != io.EOF{
 			panic(err)
 		}
-		if prevElem == nextElem {
+		/*if prevElem == nextElem {
 			return prevElem.Position
 		}
-
+*/
 		if (prevElem.Key <= key && key < nextElem.Key) || err == io.EOF{
 			break
 		}
 	}
 
-	return prevElem.Position
+	return prevElem.Position, true
 }
-
 
 
