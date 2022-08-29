@@ -1,6 +1,7 @@
 package DataBase
 
 import (
+	"KeyValueEngine/Core/Structures/BloomFilter"
 	"KeyValueEngine/Core/Structures/Cache"
 	"KeyValueEngine/Core/Structures/Config"
 	"KeyValueEngine/Core/Structures/CountMinSketch"
@@ -88,10 +89,31 @@ func (db *DataBase) Get(key string) (bool, []byte){
 	var foundSS bool
 	for i := 0; i < int(db.lsm.MaxLevel); i++ {
 		for j := 0; j < len(db.lsm.SSTables[i]); j++ {
-			
+			bfPath := db.lsm.SSTables[i][j].FilterFilePath
+			bf := BloomFilter.BloomFilter{}
+			bf.Decode(bfPath)
+			found := bf.Contains(key)
+			if !found{
+				continue
+			}
+
+			currentElement, err := db.lsm.SSTables[i][j].GetElement(key)
+			if err != nil {
+				continue
+			}
+
+			if currentElement.Timestamp > latestElement.Timestamp {
+				foundSS = true
+				latestElement = *currentElement
+			}
 		}
 	}
-
-
+	if foundSS {
+		if latestElement.Tombstone != 1 {
+			db.cache.Add(latestElement)
+			return true, latestElement.Value
+		}
+	}
+	return false, nil
 }
 
