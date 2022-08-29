@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"io"
 	"os"
-	"strconv"
 )
 
 type IndexElement struct {
@@ -70,14 +69,15 @@ func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 	if err != nil {
 		return err
 	}
-	keySize, _ := strconv.Atoi(string(keySizeByte))
+	//keySize, _ := strconv.Atoi(string(keySizeByte))
+	keySize := binary.LittleEndian.Uint64(keySizeByte)
 	indexElement.KeySize = uint64(keySize)
 
 	keyByte := make([]byte, keySize)
-	_, err = file.Seek(8, 1)
+	/*_, err = file.Seek(8, 1)
 	if err != nil {
 		return err
-	}
+	}*/
 	_, err = file.Read(keyByte)
 	if err != nil {
 		return err
@@ -85,47 +85,25 @@ func (indexElement *IndexElement) ReadRange(file *os.File) (error){
 	indexElement.Key = string(keyByte)
 
 	positionByte := make([]byte, 8)
-	_, err = file.Seek(int64(keySize), 1)
+	/*_, err = file.Seek(int64(keySize), 1)
 	if err != nil {
 		return err
 	}
-	_, err = file.Read(positionByte)
+	*/_, err = file.Read(positionByte)
 	if err != nil {
 		return err
 	}
-	position, _ := strconv.Atoi(string(positionByte))
+	//position, _ := strconv.Atoi(string(positionByte))
+	position := binary.LittleEndian.Uint64(positionByte)
 	indexElement.Position = uint64(position)
 
-	_, err = file.Seek(8, 1)
+	/*_, err = file.Seek(8, 1)
 	if err != nil {
 		return err
-	}
+	}*/
 
 	return nil
 
-	/*, err := mmap.Map(file, mmap.RDONLY, 0)
-	if err != nil {
-		return err
-	}
-	defer mmapf.Unmap()
-
-	if startIndex + 8 >= len(mmapf) {
-		return errors.New("indices invalid")
-	}
-	keySizeByte := make([]byte, 8)
-	copy(keySizeByte, mmapf[startIndex:startIndex+8])
-	keySize, _ := strconv.Atoi(string(keySizeByte))
-	indexElement.KeySize = uint64(keySize)
-
-	keyByte := make([]byte, keySize)
-	copy(keyByte, mmapf[startIndex+8:startIndex+8+keySize])
-	indexElement.Key = string(keyByte)
-
-	positionByte := make([]byte, 8)
-	copy(positionByte, mmapf[startIndex+8+keySize: startIndex+keySize+16])
-	position, _ := strconv.Atoi(string(positionByte))
-	indexElement.Position = uint64(position)
-*/
 }
 
 func getPositionInData(key string, filePath string, position uint64, intervalSize uint64) (uint64, bool) {
@@ -143,8 +121,8 @@ func getPositionInData(key string, filePath string, position uint64, intervalSiz
 	}
 */
 	currentIndexEl := IndexElement{}
-	_, _ = file.Seek(0, 0)
-	for i := position; i < intervalSize; i++ {
+	_, _ = file.Seek(int64(position), 0)
+	for i := 0; i < int(intervalSize); i++ {
 		err = currentIndexEl.ReadRange(file)
 		if err != nil {
 			return 0, false
