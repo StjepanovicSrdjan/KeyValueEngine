@@ -74,7 +74,7 @@ func (sList *SkipList) Search(key string) (Node, error){
 	if currentNode != nil && currentNode.Element.Key == key {
 		return *currentNode, nil
 	}
-	return *currentNode, errors.New("Not found.")
+	return Node{}, errors.New("Not found.")
 }
 
 func (sList *SkipList) Insert(element Element.Element) {
@@ -104,7 +104,7 @@ func (sList *SkipList) Insert(element Element.Element) {
 		}
 
 		newNode := InitNode(element, newLevel, sList.MaxLevel)
-		for i := 0; i <= newLevel; i++ {
+		for i := 0; i < newLevel; i++ {
 			newNode.Forward[i] = updateList[i].Forward[i]
 			updateList[i].Forward[i] = newNode
 		}
