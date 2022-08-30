@@ -22,5 +22,7 @@ func main() {
 	fmt.Println(db.Get("3"))
 	fmt.Println(db.Get("4"))
 	fmt.Println(db.Get("5"))
+	_ = db.Delete("2")
+	fmt.Println(db.Get("2"))
 
 }

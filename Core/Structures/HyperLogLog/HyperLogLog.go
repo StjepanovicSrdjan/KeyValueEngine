@@ -7,7 +7,6 @@ import(
 	"hash"
 	"math"
 	"math/bits"
-	"os"
 	"time"
 )
 
@@ -79,7 +78,6 @@ func (hll *HLL) emptyCount() int {
 	return sum
 }
 
-
 func (hll *HLL) Encode() []byte {
 	encoded := bytes.Buffer{}
 	encoder := gob.NewEncoder(&encoded)
@@ -98,4 +96,3 @@ func (hll *HLL) Decode(data []byte) {
 		panic(err.Error())
 	}
 }
-
