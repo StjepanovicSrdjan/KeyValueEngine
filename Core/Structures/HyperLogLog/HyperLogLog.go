@@ -7,7 +7,6 @@ import(
 	"hash"
 	"math"
 	"math/bits"
-	"os"
 	"time"
 )
 

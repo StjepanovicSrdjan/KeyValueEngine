@@ -81,8 +81,12 @@ func (db *DataBase) Get(key string) (bool, []byte){
 
 	element, err := db.lsm.Memtable.GetElement(key)
 	if err == nil {
-		db.cache.Add(element)
-		return true, element.Value
+		if element.Tombstone == 0 {
+			db.cache.Add(element)
+			return true, element.Value
+		}else{
+			return false, nil
+		}
 	}
 
 	latestElement := Element.Element{}
