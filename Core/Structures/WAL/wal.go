@@ -26,7 +26,7 @@ func InitWAL (size uint8, deleteS uint8) *WAL {
 	wal.maxSize = size
 	wal.deleteSize = deleteS
 
-	allFiles, _ := os.ReadDir("Segments")
+	allFiles, _ := os.ReadDir("data/segments")
 	lastIndex := 0
 	for _, file := range (allFiles){
 		fname := file.Name()
@@ -109,9 +109,9 @@ func (wal *WAL) Delete (key string, value []byte){
 		s = strings.Split(s[0], "wal")
 		n,_ := strconv.Atoi(s[1])
 		//_ = wal.file.Close()
-		_, _ = os.Create("Segments/wal" + strconv.Itoa(n+1) + ".bin")
-		wal.filePath = "Segments/wal" + strconv.Itoa(n+1) + ".bin"
-		segments, _ := os.ReadDir("Segments")
+		_, _ = os.Create("data/segments/wal" + strconv.Itoa(n+1) + ".bin")
+		wal.filePath = "data/segments/wal" + strconv.Itoa(n+1) + ".bin"
+		segments, _ := os.ReadDir("data/segments")
 		if len(segments) > int(wal.deleteSize) {
 			wal.ReduceSegments()
 		}
@@ -132,11 +132,11 @@ func writeLine(file *os.File, line []byte) {
 
 func (wal *WAL) ReduceSegments() {
 	for i := 1; uint8(i) <= wal.deleteSize; i++ {
-		_ = os.Remove("Segments/wal" + strconv.Itoa(i) + ".bin")
+		_ = os.Remove("data/segments/wal" + strconv.Itoa(i) + ".bin")
 	}
-	allFiles, _ := os.ReadDir("Segments")
+	allFiles, _ := os.ReadDir("data/segments")
 	for index, file := range allFiles{
 		str := file.Name()
-		_ = os.Rename("Segments/"+str, "Segments/wal"+strconv.Itoa(index+1)+".bin")
+		_ = os.Rename("data/segments/"+str, "data/segments/wal"+strconv.Itoa(index+1)+".bin")
 	}
 }

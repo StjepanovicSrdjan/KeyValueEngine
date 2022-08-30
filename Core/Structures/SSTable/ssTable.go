@@ -125,18 +125,18 @@ func createDIS(elements []Element.Element, dataPath string, indexPath string, su
 		positionData += element.GetSize()
 
 		if index%3 == 0 || index == len(elements)-1 {
-			summaryEntry := SummeryElement{KeySize: indexElement.KeySize, Key: indexElement.Key,
+			summaryElement := SummeryElement{KeySize: indexElement.KeySize, Key: indexElement.Key,
 				Position: positionIndex}
-			summeryElements = append(summeryElements, summaryEntry)
+			summeryElements = append(summeryElements, summaryElement)
 
-			summaryHeader.ElementBlockSize += summaryEntry.GetSize()
+			summaryHeader.ElementBlockSize += summaryElement.GetSize()
 		}
 		positionIndex += indexElement.GetSize()
 	}
 
 	summaryHeader.Write(summaryFileWriter)
-	for _, summaryEntry := range summeryElements {
-		summaryEntry.Write(summaryFileWriter)
+	for _, summeryElement := range summeryElements {
+		summeryElement.Write(summaryFileWriter)
 	}
 
 	err = dataFileWriter.Flush()
