@@ -3,7 +3,6 @@ package Memtable
 import (
 	"KeyValueEngine/Core/Structures/Element"
 	"KeyValueEngine/Core/Structures/SkipList"
-	"errors"
 )
 
 const (
@@ -35,16 +34,17 @@ func (memtable *Memtable) Clear() {
 
 func (memtable *Memtable) Add(element Element.Element) ([]Element.Element) {
 	var elements []Element.Element = nil
-	_, err := memtable.SkipList.Search(element.Key)
+	oldElement, err := memtable.SkipList.Search(element.Key)
 	if element.Tombstone == 1 {
 		if err != nil {
 			if memtable.SkipList != nil && memtable.SkipList.Size >= int(memtable.Capacity*memtable.Threshold) {
 				elements = memtable.getAll()
 				memtable.Clear()
 			}
-			err = memtable.SkipList.Delete(element)
+			memtable.SkipList.Delete(oldElement.Element)
+			memtable.SkipList.Insert(element)
 		} else {
-			err = memtable.SkipList.Delete(element)
+			memtable.SkipList.Insert(element)
 		}
 	} else {
 		_, err = memtable.SkipList.Search(element.Key)
@@ -63,11 +63,11 @@ func (memtable *Memtable) Add(element Element.Element) ([]Element.Element) {
 
 func (memtable *Memtable) GetElement(key string) (Element.Element, error) {
 	node, err := memtable.SkipList.Search(key)
-	if err == nil {
+	/*if err == nil {
 		if node.Element.Tombstone == 1 {
 			return node.Element, errors.New("Not found.")
 		}
-	}
+	}*/
 	return node.Element, err
 }
 

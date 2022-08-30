@@ -76,11 +76,8 @@ func (db *DataBase) Put(key, value string) {
 func (db *DataBase) Get(key string) (bool, []byte){
 	element, found := db.cache.Get(key)
 	if found{
-		if element.Tombstone == 0 {
-			return true, element.Value
-		}else{
-			return false, nil
-		}
+		return true, element.Value
+
 	}
 
 	element, err := db.lsm.Memtable.GetElement(key)
@@ -126,11 +123,14 @@ func (db *DataBase) Get(key string) (bool, []byte){
 }
 
 func (db *DataBase) Delete(key string) bool{
-	db.cache.Delete(key)
+
 	found, _  := db.Get(key)
 	if !found {
 		return false
 	}
+
+	db.cache.Delete(key)
+
 	element := Element.InitElement(key, []byte("0"), 1)
 	elements := db.lsm.Memtable.Add(*element)
 	if elements != nil {
