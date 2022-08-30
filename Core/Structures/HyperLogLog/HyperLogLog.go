@@ -1,6 +1,8 @@
 package HyperLogLog
 
 import(
+	"bytes"
+	"encoding/gob"
 	"github.com/spaolacci/murmur3"
 	"hash"
 	"math"
@@ -74,4 +76,23 @@ func (hll *HLL) emptyCount() int {
 		}
 	}
 	return sum
+}
+
+func (hll *HLL) Encode() []byte {
+	encoded := bytes.Buffer{}
+	encoder := gob.NewEncoder(&encoded)
+	err := encoder.Encode(hll)
+	if err != nil {
+		panic(err.Error())
+	}
+	return encoded.Bytes()
+}
+
+func (hll *HLL) Decode(data []byte) {
+	encoded := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(encoded)
+	err := decoder.Decode(hll)
+	if err != nil {
+		panic(err.Error())
+	}
 }
