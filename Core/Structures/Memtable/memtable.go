@@ -17,9 +17,9 @@ type Memtable struct {
 	SkipList *SkipList.SkipList
 }
 
-func InitMemtable() *Memtable {
+func InitMemtable(capacity int, threshold float64) *Memtable {
 	sList := SkipList.InitSkipList()
-	return &Memtable{Capacity: defaultCapacity, Threshold: defaultThreshold, SkipList: sList}
+	return &Memtable{Capacity: float64(capacity), Threshold: threshold, SkipList: sList}
 }
 
 func (memtable *Memtable) Clear() {

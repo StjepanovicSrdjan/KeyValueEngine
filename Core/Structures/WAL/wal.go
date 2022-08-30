@@ -2,6 +2,7 @@ package WAL
 
 import (
 	"KeyValueEngine/Core/Structures/Element"
+	"fmt"
 	"github.com/edsrzf/mmap-go"
 	"hash/crc32"
 	"os"
@@ -16,7 +17,7 @@ func CRC32(data []byte) uint32 {
 type WAL struct {
 	maxSize uint8
 	currentSize uint8
-	file *os.File
+	filePath string
 	deleteSize uint8
 }
 
@@ -38,52 +39,78 @@ func InitWAL (size uint8, deleteS uint8) *WAL {
 	}
 
 	if lastIndex > 0 {
-		wal.file,_ = os.OpenFile("Segments/wal" + strconv.Itoa(lastIndex) + ".bin", os.O_RDWR, 0777)
+		//wal.file,_ = os.OpenFile("Segments/wal" + strconv.Itoa(lastIndex) + ".bin", os.O_RDWR, 0777)
+		wal.filePath = "data/segments/wal" + strconv.Itoa(lastIndex) + ".bin"
 	}else{
-		wal.file,_ = os.Create("Segments/wal1.bin")
-
+		file,_ := os.Create("data/segments/wal1.bin")
+		wal.filePath = file.Name()
+		//wal.filePath = "data/segments/wal1.bin"
 	}
 
 	return &wal
 }
 
-func (wal *WAL) Add (key string, value []byte){
+func (wal *WAL) Add (key string, value []byte) bool{
 
-	elem := Element.NewElement(key, value, 0)
+	elem := Element.InitElement(key, value, 0)
 	line := elem.Encode()
 
-	writeLine(wal.file, line)
+	file, err := os.OpenFile(wal.filePath, os.O_RDWR, 0777)
+	if err != nil{panic(err)}
+	defer file.Close()
+	writeLine(file, line)
 
 	wal.currentSize += 1
 	if wal.currentSize >= wal.maxSize{
-		fname := wal.file.Name()
+		fname := wal.filePath
 		s := strings.Split(fname, ".bin")
 		s = strings.Split(s[0], "wal")
-		n,_ := strconv.Atoi(s[1])
-		_ = wal.file.Close()
-		wal.file, _ = os.Create("Segments/wal" + strconv.Itoa(n+1) + ".bin")
-		segments, _ := os.ReadDir("Segments")
+		n, err := strconv.Atoi(s[1])
+		if err != nil {
+			return false
+		}
+
+/*		err = wal.file.Close()
+		if err != nil{
+			return false
+		}*/
+
+		_, err = os.Create("data/segments/wal" + strconv.Itoa(n+1) + ".bin")
+		if err != nil{
+			return false
+		}
+		wal.filePath = "data/segments/wal" + strconv.Itoa(n+1) + ".bin"
+
+		segments, err := os.ReadDir("data/segments")
+		if err != nil{
+			return false
+		}
 		if len(segments) > int(wal.deleteSize) {
 			wal.ReduceSegments()
 		}
 	}
+	return true
 }
 
 func (wal *WAL) Delete (key string, value []byte){
 
-	elem := Element.NewElement(key, value, 1)
+	elem := Element.InitElement(key, value, 1)
 	line := elem.Encode()
 
-	writeLine(wal.file, line)
+	file, err := os.OpenFile(wal.filePath, os.O_RDWR, 0777)
+	if err != nil{panic(err)}
+	defer file.Close()
+	writeLine(file, line)
 
 	wal.currentSize += 1
 	if wal.currentSize >= wal.maxSize{
-		fname := wal.file.Name()
+		fname := wal.filePath
 		s := strings.Split(fname, ".bin")
 		s = strings.Split(s[0], "wal")
 		n,_ := strconv.Atoi(s[1])
-		_ = wal.file.Close()
-		wal.file, _ = os.Create("Segments/wal" + strconv.Itoa(n+1) + ".bin")
+		//_ = wal.file.Close()
+		_, _ = os.Create("Segments/wal" + strconv.Itoa(n+1) + ".bin")
+		wal.filePath = "Segments/wal" + strconv.Itoa(n+1) + ".bin"
 		segments, _ := os.ReadDir("Segments")
 		if len(segments) > int(wal.deleteSize) {
 			wal.ReduceSegments()
@@ -93,6 +120,7 @@ func (wal *WAL) Delete (key string, value []byte){
 
 func writeLine(file *os.File, line []byte) {
 	stat, _ := file.Stat()
+	fmt.Println(stat)
 	fSize := stat.Size()
 	_ = file.Truncate(fSize + int64(len(line)))
 

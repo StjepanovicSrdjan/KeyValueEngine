@@ -24,19 +24,19 @@ func InitSSTable(elements []Element.Element, dataPath, indexPath, summaryPath,
 	createDIS(elements, dataPath, indexPath, summaryPath)
 	createFilter(elements, filterPath)
 	createMetadata(elements, metadataPath)
-	createTOC(dataPath, indexPath, summaryPath, filterPath, metadataPath, tocPath)
+	createTOC(tocPath, dataPath, indexPath, summaryPath, metadataPath, filterPath)
 
 	return &SSTable{dataPath, indexPath, summaryPath,
 		filterPath, metadataPath, tocPath}
 }
 
 func (ssTable *SSTable) GetElement(key string) (*Element.Element, error) {
-	indexPosition := GetPositionInIndex(key, ssTable.SummeryFilePath)
-	if indexPosition == 0 {
+	indexPosition, found := GetPositionInIndex(key, ssTable.SummeryFilePath)
+	if !found {
 		return &Element.Element{}, errors.New("Key not found.")
 	}
 
-	dataPosition, found := getPositionInData(key, ssTable.IndexFilePath, indexPosition, 12)
+	dataPosition, found := getPositionInData(key, ssTable.IndexFilePath, indexPosition, 3)
 	if !found {
 		return &Element.Element{}, errors.New("Key not found.")
 	}
@@ -124,7 +124,7 @@ func createDIS(elements []Element.Element, dataPath string, indexPath string, su
 
 		positionData += element.GetSize()
 
-		if index%12 == 0 || index == len(elements)-1 {
+		if index%3 == 0 || index == len(elements)-1 {
 			summaryEntry := SummeryElement{KeySize: indexElement.KeySize, Key: indexElement.Key,
 				Position: positionIndex}
 			summeryElements = append(summeryElements, summaryEntry)

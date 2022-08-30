@@ -9,18 +9,18 @@ import (
 )
 
 type LSM struct {
-	memtable Memtable.Memtable
-	ssTables [][]SSTable.SSTable
-	maxLevel uint16
-	maxTablesInLevel uint16
+	Memtable Memtable.Memtable
+	SSTables [][]SSTable.SSTable
+	MaxLevel         uint16
+	MaxTablesInLevel uint16
 }
 
 func InitLSM (memtable Memtable.Memtable, maxLevel, maxTablesInLevel uint16) (*LSM){
 	return &LSM{
-		memtable: memtable,
-		ssTables: make([][]SSTable.SSTable, maxLevel),
-		maxLevel: maxLevel,
-		maxTablesInLevel: maxTablesInLevel,
+		Memtable:         memtable,
+		SSTables:         make([][]SSTable.SSTable, maxLevel),
+		MaxLevel:         maxLevel,
+		MaxTablesInLevel: maxTablesInLevel,
 	}
 }
 
@@ -31,63 +31,63 @@ func (lsm *LSM) UploadData() {
 		return
 	}
 
-	tablesNumInLevel := make([]int, lsm.maxLevel)
+	tablesNumInLevel := make([]int, lsm.MaxLevel)
 
 	for _, file := range files {
 		currentName := file.Name()
 
-		level, index := getLevelAndIndex(currentName)
+		level, index := GetLevelAndIndex(currentName)
 
 		if tablesNumInLevel[level] < index {
 			tablesNumInLevel[level] = index
 		}
 	}
-	numOfLevels := int(lsm.maxLevel)
+	numOfLevels := int(lsm.MaxLevel)
 	for i := 0; i < numOfLevels; i++ {
 		if tablesNumInLevel[i] != 0 {
-			lsm.ssTables[i] = make([]SSTable.SSTable, tablesNumInLevel[i])
+			lsm.SSTables[i] = make([]SSTable.SSTable, tablesNumInLevel[i])
 		}else{
-			lsm.ssTables[i] = make([]SSTable.SSTable, 0)
+			lsm.SSTables[i] = make([]SSTable.SSTable, 0)
 		}
 	}
 
 	for _, file := range files{
-		level, index := getLevelAndIndex(file.Name())
+		level, index := GetLevelAndIndex(file.Name())
 		levelStr := strconv.Itoa(level)
 		indexStr := strconv.Itoa(index)
 		ssTable := SSTable.SSTable{
 			DataFilePath: "data/data/data_" + levelStr + "_" + indexStr + ".bin",
 			IndexFilePath: "data/index/index_" + levelStr + "_" + indexStr + ".bin",
 			SummeryFilePath: "data/summery/summery_" + levelStr + "_" + indexStr + ".bin",
-			FilterFilePath: "data/filer/filter_" + levelStr + "_" + indexStr + ".bin",
+			FilterFilePath: "data/filter/filter_" + levelStr + "_" + indexStr + ".bin",
 			MetadataFilePath: "data/metadata/metadata_" + levelStr + "_" + indexStr + ".bin",
 			TOCFilePath: "data/TOC/toc_" + levelStr + "_" + indexStr + ".bin",
 		}
-		lsm.ssTables[level][index] = ssTable
+		lsm.SSTables[level][index] = ssTable
 	}
 }
 
 func (lsm *LSM) Add(ssTable SSTable.SSTable) {
-	lsm.ssTables[0] = append(lsm.ssTables[0], ssTable)
-	for i := 0; i < int(lsm.maxLevel); i++ {
-		if len(lsm.ssTables[i]) < int(lsm.maxTablesInLevel){
+	lsm.SSTables[0] = append(lsm.SSTables[0], ssTable)
+	for i := 0; i < int(lsm.MaxLevel); i++ {
+		if len(lsm.SSTables[i]) < int(lsm.MaxTablesInLevel){
 			break
 		}
 
 		newSStable := lsm.MergeLevel(i)
-		lsm.ssTables[i] = append(lsm.ssTables[i], newSStable)
-		for j := 0; j < len(lsm.ssTables[i]); j++ {
-			lsm.ssTables[i][j].Delete()
+		lsm.SSTables[i] = append(lsm.SSTables[i], newSStable)
+		for j := 0; j < len(lsm.SSTables[i]); j++ {
+			lsm.SSTables[i][j].Delete()
 		}
 	}
 
 }
 
 func (lsm *LSM) MergeLevel(level int) (SSTable.SSTable) {
-	firstTable := lsm.ssTables[level][0]
-	newIndex := getLastIndex(level + 1)
-	for i := 1; i < int(lsm.maxTablesInLevel); i++ {
-		secondTable := lsm.ssTables[level][i]
+	firstTable := lsm.SSTables[level][0]
+	newIndex := GetLastIndex(level + 1)
+	for i := 1; i < int(lsm.MaxTablesInLevel); i++ {
+		secondTable := lsm.SSTables[level][i]
 		newTable := lsm.MergeSSTables(firstTable, secondTable, level + 1, newIndex)
 
 		firstTable = newTable
@@ -162,7 +162,7 @@ func (lsm *LSM) MergeSSTables(firstTable, secondTable SSTable.SSTable, level, in
 	DataFilePath := "data/data/data_" + newLevel + "_" + newIndex + ".bin"
 	IndexFilePath := "data/index/index_" + newLevel + "_" + newIndex + ".bin"
 	SummeryFilePath := "data/summery/summery_" + newLevel + "_" + newIndex + ".bin"
-	FilterFilePath := "data/filer/filter_" + newLevel + "_" + newIndex + ".bin"
+	FilterFilePath := "data/filter/filter_" + newLevel + "_" + newIndex + ".bin"
 	MetadataFilePath := "data/metadata/metadata_" + newLevel + "_" + newIndex + ".bin"
 	TOCFilePath := "data/TOC/toc_" + newLevel + "_" + newIndex + ".bin"
 
