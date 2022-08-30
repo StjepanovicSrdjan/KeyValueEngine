@@ -117,3 +117,32 @@ func (db *DataBase) Get(key string) (bool, []byte){
 	return false, nil
 }
 
+func (db *DataBase) Delete(key string) bool{
+	db.cache.Delete(key)
+	found, _  := db.Get(key)
+	if !found {
+		return false
+	}
+	element := Element.InitElement(key, []byte("0"), 1)
+	elements := db.lsm.Memtable.Add(*element)
+	if elements != nil {
+		level := 0
+		index := LSMTree.GetLastIndex(0)
+
+		newLevel := strconv.Itoa(level)
+		newIndex := strconv.Itoa(index)
+		DataFilePath := "data/data/data_" + newLevel + "_" + newIndex + ".bin"
+		IndexFilePath := "data/index/index_" + newLevel + "_" + newIndex + ".bin"
+		SummeryFilePath := "data/summery/summery_" + newLevel + "_" + newIndex + ".bin"
+		FilterFilePath := "data/filter/filter_" + newLevel + "_" + newIndex + ".bin"
+		MetadataFilePath := "data/metadata/metadata_" + newLevel + "_" + newIndex + ".bin"
+		TOCFilePath := "data/TOC/toc_" + newLevel + "_" + newIndex + ".bin"
+
+		sstable := SSTable.InitSSTable(elements, DataFilePath, IndexFilePath, SummeryFilePath, FilterFilePath, MetadataFilePath,
+			TOCFilePath)
+
+		db.lsm.Add(*sstable)
+	}
+	return true
+}
+
