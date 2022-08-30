@@ -1,7 +1,9 @@
 package CountMinSketch
 
 import (
+	"encoding/gob"
 	"hash"
+	"os"
 )
 
 type CountMinSketch struct {
@@ -58,4 +60,29 @@ func (cms *CountMinSketch) GetFrequency(item string) uint {
 		}
 	}
 	return min
+}
+
+func Encode(c *CountMinSketch, filePath string) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	encoder := gob.NewEncoder(file)
+	if err = encoder.Encode(&c); err != nil {
+		panic(err)
+	}
+}
+
+func Decode(filePath string) *CountMinSketch {
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	decoder := gob.NewDecoder(file)
+	var c CountMinSketch
+	err = decoder.Decode(&c)
+	c.hashFuncs = CreateHashFunctions(c.k)
+	file.Close()
+	return &c
 }
