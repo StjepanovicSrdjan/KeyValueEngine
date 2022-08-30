@@ -76,7 +76,11 @@ func (db *DataBase) Put(key, value string) {
 func (db *DataBase) Get(key string) (bool, []byte){
 	element, found := db.cache.Get(key)
 	if found{
-		return true, element.Value
+		if element.Tombstone == 0 {
+			return true, element.Value
+		}else{
+			return false, nil
+		}
 	}
 
 	element, err := db.lsm.Memtable.GetElement(key)
