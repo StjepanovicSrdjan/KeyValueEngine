@@ -1,6 +1,7 @@
 package HyperLogLog
 
-import (
+import(
+	"bytes"
 	"encoding/gob"
 	"github.com/spaolacci/murmur3"
 	"hash"
@@ -78,16 +79,23 @@ func (hll *HLL) emptyCount() int {
 	return sum
 }
 
-func (hll *HLL) encode() {
-	file, err := os.OpenFile("data/hll/hll.gob", os.O_RDWR, 0777)
-	if err != nil {
-		panic(err)
-	}
 
-	encoder := gob.NewEncoder(file)
-	err = encoder.Encode(hll)
+func (hll *HLL) Encode() []byte {
+	encoded := bytes.Buffer{}
+	encoder := gob.NewEncoder(&encoded)
+	err := encoder.Encode(hll)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
+	}
+	return encoded.Bytes()
+}
+
+func (hll *HLL) Decode(data []byte) {
+	encoded := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(encoded)
+	err := decoder.Decode(hll)
+	if err != nil {
+		panic(err.Error())
 	}
 }
 
