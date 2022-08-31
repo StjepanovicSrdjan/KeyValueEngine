@@ -27,7 +27,7 @@ func InitBF(expectedEl int, fpRate float64)  *BloomFilter {
 
 func (bf *BloomFilter) Add(item string) {
 	arr := []byte(item)
-	//hashValues := bf.Hash(arr)
+	//hashValues := bf.hash(arr)
 
 	i := uint(0)
 
@@ -51,7 +51,7 @@ func (bf *BloomFilter) Add(item string) {
 
 func (bf *BloomFilter) Contains(item string) bool{
 	arr := []byte(item)
-	//hashValues := bf.Hash(arr)
+	//hashValues := bf.hash(arr)
 
 	i := uint(0)
 

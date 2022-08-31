@@ -77,7 +77,6 @@ func (db *DataBase) Get(key string) (bool, []byte){
 	element, found := db.cache.Get(key)
 	if found{
 		return true, element.Value
-
 	}
 
 	element, err := db.lsm.Memtable.GetElement(key)
