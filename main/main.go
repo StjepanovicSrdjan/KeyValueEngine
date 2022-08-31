@@ -1,12 +1,9 @@
 package main
 
-import (
-	"KeyValueEngine/Core/DataBase"
-	"fmt"
-)
+import "KeyValueEngine/View"
 
 func main() {
-	db := DataBase.InitDataBase()
+	/*db := DataBase.InitDataBase()
 	db.Put("1", "Srdjan")
 	db.Put("2", "M")
 	db.Put("3", "Mi")
@@ -23,6 +20,7 @@ func main() {
 	fmt.Println(db.Get("4"))
 	fmt.Println(db.Get("5"))
 	_ = db.Delete("2")
-	fmt.Println(db.Get("2"))
+	fmt.Println(db.Get("2"))*/
+	View.Console()
 
 }
