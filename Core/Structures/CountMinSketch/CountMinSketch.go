@@ -7,54 +7,54 @@ import (
 )
 
 type CountMinSketch struct {
-	k uint
-	m         uint
+	K         uint
+	M         uint
 	hashFuncs []hash.Hash32
-	data      [][]uint
+	Data      [][]uint
 }
 
 func InitCMS(epsilon, delta float64) *CountMinSketch {
 	hashNum := CalculateK(delta)
 	rowNum := CalculateM(epsilon)
 	ret := CountMinSketch{
-		k:         hashNum,
-		m:         rowNum,
+		K:         hashNum,
+		M:         rowNum,
 		hashFuncs: CreateHashFunctions(hashNum),
 	}
-	ret.data = make([][] uint, ret.k)
-	for i := range ret.data {
-		ret.data[i] = make([]uint, ret.m)
+	ret.Data = make([][] uint, ret.K)
+	for i := range ret.Data {
+		ret.Data[i] = make([]uint, ret.M)
 	}
 	return &ret
 }
 
 func (cms *CountMinSketch) Add(item string) {
 
-	for i := 0; i < int(cms.k); i++ {
+	for i := 0; i < int(cms.K); i++ {
 		cms.hashFuncs[i].Reset()
 		_, err := cms.hashFuncs[i].Write([]byte(item))
 		if err != nil {
 			return
 		}
-		j := cms.hashFuncs[i].Sum32() % uint32(cms.m)
-		cms.data[i][j] += 1
+		j := cms.hashFuncs[i].Sum32() % uint32(cms.M)
+		cms.Data[i][j] += 1
 	}
 }
 
 func (cms *CountMinSketch) GetFrequency(item string) uint {
-	fs := make([]uint, cms.k, cms.k)
-	for i := 0; i < int(cms.k); i++ {
+	fs := make([]uint, cms.K, cms.K)
+	for i := 0; i < int(cms.K); i++ {
 
 		cms.hashFuncs[i].Reset()
 		_, err := cms.hashFuncs[i].Write([]byte(item))
 		if err != nil {
 			return 0
 		}
-		j := cms.hashFuncs[i].Sum32() % uint32(cms.m)
-		fs[i] = cms.data[i][j]
+		j := cms.hashFuncs[i].Sum32() % uint32(cms.M)
+		fs[i] = cms.Data[i][j]
 	}
 	min := fs[0]
-	for i := 1; i < int(cms.k); i++ {
+	for i := 1; i < int(cms.K); i++ {
 		if fs[i] < min {
 			min = fs[i]
 		}
@@ -82,10 +82,10 @@ func (cms *CountMinSketch) Encode() []byte {
 }
 
 func (cms *CountMinSketch) Decode(data []byte) {
-	/*decoder := gob.NewDecoder(data)
+	/*decoder := gob.NewDecoder(Data)
 	var c CountMinSketch
 	err = decoder.Decode(&c)
-	c.hashFuncs = CreateHashFunctions(c.k)
+	c.hashFuncs = CreateHashFunctions(c.K)
 	file.Close()
 	return &c*/
 
@@ -95,4 +95,5 @@ func (cms *CountMinSketch) Decode(data []byte) {
 	if err != nil {
 		panic(err.Error())
 	}
+	cms.hashFuncs = CreateHashFunctions(cms.K)
 }

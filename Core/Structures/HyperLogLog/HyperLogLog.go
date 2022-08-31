@@ -16,21 +16,21 @@ const (
 )
 
 type HLL struct {
-	m   uint64
-	p   uint8
-	reg []uint8
+	M   uint64
+	P    uint8
+	Reg  []uint8
 	hash hash.Hash32
 }
 
 func InitHLL(p uint8) (*HLL) {
 	if p > HLL_MAX_PRECISION || p < HLL_MIN_PRECISION {
-		panic("Incorrect p.")
+		panic("Incorrect P.")
 	}
 	M := uint64(math.Pow(2, float64(p)))
 	return &HLL{
-		m: M,
-		p: p,
-		reg: make([]uint8, M, M),
+		M:    M,
+		P:    p,
+		Reg:  make([]uint8, M, M),
 		hash: murmur3.New32WithSeed(uint32(time.Now().Unix())),
 	}
 }
@@ -42,25 +42,25 @@ func (hll *HLL) Add(item string) {
 		panic(err)
 	}
 	b := hll.hash.Sum32()
-	bucketNum := b >> (32 - hll.p)
+	bucketNum := b >> (32 - hll.P)
 	trailingZeros := bits.TrailingZeros32(b)
-	if hll.reg[bucketNum] < uint8(trailingZeros) {
-		hll.reg[bucketNum] = uint8(trailingZeros)
+	if hll.Reg[bucketNum] < uint8(trailingZeros) {
+		hll.Reg[bucketNum] = uint8(trailingZeros)
 	}
 }
 
 func (hll *HLL) Estimate() float64 {
 	sum := 0.0
-	for _, val := range hll.reg {
+	for _, val := range hll.Reg {
 		sum += math.Pow(math.Pow(2.0, float64(val)),-1)
 	}
 
-	alpha := 0.7213 / (1.0 + 1.079/float64(hll.m))
-	estimation := alpha * math.Pow(float64(hll.m), 2.0) / sum
+	alpha := 0.7213 / (1.0 + 1.079/float64(hll.M))
+	estimation := alpha * math.Pow(float64(hll.M), 2.0) / sum
 	emptyRegs := hll.emptyCount()
-	if estimation <= 2.5*float64(hll.m) { // do small range correction
+	if estimation <= 2.5*float64(hll.M) { // do small range correction
 		if emptyRegs > 0 {
-			estimation = float64(hll.m) * math.Log(float64(hll.m)/float64(emptyRegs))
+			estimation = float64(hll.M) * math.Log(float64(hll.M)/float64(emptyRegs))
 		}
 	} else if estimation > 1/30.0*math.Pow(2.0, 32.0) { // do large range correction
 		estimation = -math.Pow(2.0, 32.0) * math.Log(1.0-estimation/math.Pow(2.0, 32.0))
@@ -70,7 +70,7 @@ func (hll *HLL) Estimate() float64 {
 
 func (hll *HLL) emptyCount() int {
 	sum := 0
-	for _, val := range hll.reg {
+	for _, val := range hll.Reg {
 		if val == 0 {
 			sum++
 		}
@@ -95,4 +95,5 @@ func (hll *HLL) Decode(data []byte) {
 	if err != nil {
 		panic(err.Error())
 	}
+	hll.hash = murmur3.New32WithSeed(uint32(time.Now().Unix()))
 }

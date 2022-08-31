@@ -25,8 +25,8 @@ const cmsMenu1 = "\n1. Create Count min sketch" +
 	"\n0. Back"
 
 const hllMenu2 = "\n1. Add" +
-	"\n 2.Get estimated value" +
-	"0. Back"
+	"\n2. Get estimated value" +
+	"\n0. Back"
 
 const cmsMenu2 = "\n1. Add" +
 	"\n2. Get frequency" +

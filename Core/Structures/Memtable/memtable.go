@@ -36,7 +36,7 @@ func (memtable *Memtable) Add(element Element.Element) ([]Element.Element) {
 	var elements []Element.Element = nil
 	oldElement, err := memtable.SkipList.Search(element.Key)
 	if element.Tombstone == 1 {
-		if err != nil {
+		if err == nil {
 			if memtable.SkipList != nil && memtable.SkipList.Size >= int(memtable.Capacity*memtable.Threshold) {
 				elements = memtable.getAll()
 				memtable.Clear()
