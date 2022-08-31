@@ -41,8 +41,8 @@ func InitDataBase() (*DataBase){
 	}
 }
 
-func (db *DataBase) Put(key, value string) {
-	valueByte := []byte(value)
+func (db *DataBase) Put(key string, valueByte []byte) {
+	//valueByte := []byte(value)
 	element := Element.InitElement(key, valueByte, 0)
 
 	if !db.wal.Add(key, valueByte){
@@ -152,5 +152,15 @@ func (db *DataBase) Delete(key string) bool{
 		db.lsm.Add(*sstable)
 	}
 	return true
+}
+
+func (db *DataBase) PutHll(key string, hll HyperLogLog.HLL) {
+	data := hll.Encode()
+	db.Put(key, data)
+}
+
+func (db *DataBase) PutCms(key string, cms CountMinSketch.CountMinSketch) {
+	data := cms.Encode()
+	db.Put(key, data)
 }
 

@@ -1,9 +1,9 @@
 package CountMinSketch
 
 import (
+	"bytes"
 	"encoding/gob"
 	"hash"
-	"os"
 )
 
 type CountMinSketch struct {
@@ -62,8 +62,8 @@ func (cms *CountMinSketch) GetFrequency(item string) uint {
 	return min
 }
 
-func Encode(c *CountMinSketch, filePath string) {
-	file, err := os.Create(filePath)
+func (cms *CountMinSketch) Encode() []byte {
+	/*file, err := os.Create(filePath)
 	if err != nil {
 		panic(err)
 	}
@@ -71,18 +71,28 @@ func Encode(c *CountMinSketch, filePath string) {
 	encoder := gob.NewEncoder(file)
 	if err = encoder.Encode(&c); err != nil {
 		panic(err)
+	}*/
+	encoded := bytes.Buffer{}
+	encoder := gob.NewEncoder(&encoded)
+	err := encoder.Encode(cms)
+	if err != nil {
+		panic(err.Error())
 	}
+	return encoded.Bytes()
 }
 
-func Decode(filePath string) *CountMinSketch {
-	file, err := os.Open(filePath)
-	if err != nil {
-		panic(err)
-	}
-	decoder := gob.NewDecoder(file)
+func (cms *CountMinSketch) Decode(data []byte) {
+	/*decoder := gob.NewDecoder(data)
 	var c CountMinSketch
 	err = decoder.Decode(&c)
 	c.hashFuncs = CreateHashFunctions(c.k)
 	file.Close()
-	return &c
+	return &c*/
+
+	encoded := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(encoded)
+	err := decoder.Decode(cms)
+	if err != nil {
+		panic(err.Error())
+	}
 }
