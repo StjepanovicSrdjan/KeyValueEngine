@@ -40,6 +40,7 @@ func Console() {
 	var value string
 	for {
 		fmt.Println(mainMenu)
+		fmt.Println("Input: ")
 		fmt.Scan(&input)
 		if input == "1" {
 			fmt.Println("Input key: ")
