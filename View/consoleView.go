@@ -43,33 +43,45 @@ func Console() {
 		fmt.Println("Input: ")
 		fmt.Scan(&input)
 		if input == "1" {
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			fmt.Println("Input value: ")
-			fmt.Scan(&value)
-			data := []byte(value)
-			db.Put(key, data)
-			continue
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				fmt.Println("Input value: ")
+				fmt.Scan(&value)
+				data := []byte(value)
+				db.Put(key, data)
+				continue
+			}else{
+				fmt.Println("Request denied!")
+			}
 		}else if input == "2" {
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			found, valueByte := db.Get(key)
-			if found {
-				fmt.Println("Value: " + string(valueByte))
-			}else{
-				fmt.Println("Value not found!")
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				found, valueByte := db.Get(key)
+				if found {
+					fmt.Println("Value: " + string(valueByte))
+				} else {
+					fmt.Println("Value not found!")
+				}
+				continue
+			}else {
+				fmt.Println("Request denied!")
 			}
-			continue
 		}else if input == "3"{
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			succ := db.Delete(key)
-			if succ {
-				fmt.Println("You successfully deleted value with entered key.")
-			}else{
-				fmt.Println("Key not found.")
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				succ := db.Delete(key)
+				if succ {
+					fmt.Println("You successfully deleted value with entered key.")
+				} else {
+					fmt.Println("Key not found.")
+				}
+				continue
+			}else {
+				fmt.Println("Request denied!")
 			}
-			continue
 		}else if input == "4" {
 			hllOptions(db)
 			continue
@@ -93,53 +105,65 @@ func hllOptions(db *DataBase.DataBase) {
 		fmt.Println(hllMenu1)
 		fmt.Scan(&input)
 		if input == "1" {
-			hll := HyperLogLog.InitHLL(4)
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			db.PutHll(key, *hll)
-			continue
-		}else if input == "2" {
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			succ := db.Delete(key)
-			if succ {
-				fmt.Println("You successfully deleted value with entered key.")
-			}else{
-				fmt.Println("Key not found.")
-			}
-			continue
-		}else if input == "3" {
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			found, hllByte := db.Get(key)
-			if !found {
-				fmt.Println("Key not found.")
-			}else{
-				hll := HyperLogLog.HLL{}
-				hll.Decode(hllByte)
-				for {
-					fmt.Println(hllMenu2)
-					fmt.Scan(&input)
-					if input == "1" {
-						fmt.Println("Input item: ")
-						fmt.Scan(&item)
-						hll.Add(item)
-						continue
-					}else if input == "2" {
-						fmt.Println(hll.Estimate())
-						continue
-					}else if input == "0" {
-						break
-					}else {
-						fmt.Println("Input error. Try again!")
-						continue
-					}
-				}
+			if db.TokenBucket.HasTokens() {
+				hll := HyperLogLog.InitHLL(4)
 				fmt.Println("Input key: ")
 				fmt.Scan(&key)
-				db.PutHll(key, hll)
+				db.PutHll(key, *hll)
+				continue
+			}else {
+				fmt.Println("Request denied!")
 			}
-			continue
+		}else if input == "2" {
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				succ := db.Delete(key)
+				if succ {
+					fmt.Println("You successfully deleted value with entered key.")
+				} else {
+					fmt.Println("Key not found.")
+				}
+				continue
+			}else {
+				fmt.Println("Request denied!")
+			}
+		}else if input == "3" {
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				found, hllByte := db.Get(key)
+				if !found {
+					fmt.Println("Key not found.")
+				} else {
+					hll := HyperLogLog.HLL{}
+					hll.Decode(hllByte)
+					for {
+						fmt.Println(hllMenu2)
+						fmt.Scan(&input)
+						if input == "1" {
+							fmt.Println("Input item: ")
+							fmt.Scan(&item)
+							hll.Add(item)
+							continue
+						} else if input == "2" {
+							fmt.Println(hll.Estimate())
+							continue
+						} else if input == "0" {
+							break
+						} else {
+							fmt.Println("Input error. Try again!")
+							continue
+						}
+					}
+					fmt.Println("Input key: ")
+					fmt.Scan(&key)
+					db.PutHll(key, hll)
+				}
+				continue
+			}else {
+				fmt.Println("Request denied!")
+			}
 		}else if input == "0" {
 			break
 		}else {
@@ -157,55 +181,67 @@ func cmsOptions(db *DataBase.DataBase) {
 		fmt.Println(cmsMenu1)
 		fmt.Scan(&input)
 		if input == "1" {
-			cms := CountMinSketch.InitCMS(0.01, 0.01)
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			db.PutCms(key, *cms)
-			continue
-		}else if input == "2" {
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			succ := db.Delete(key)
-			if succ {
-				fmt.Println("You successfully deleted value with entered key.")
-			}else{
-				fmt.Println("Key not found.")
-			}
-			continue
-		}else if input == "3" {
-			fmt.Println("Input key: ")
-			fmt.Scan(&key)
-			found, cmsByte := db.Get(key)
-			if !found {
-				fmt.Println("Key not found.")
-			}else{
-				cms := CountMinSketch.CountMinSketch{}
-				cms.Decode(cmsByte)
-				for {
-					fmt.Println(cmsMenu2)
-					fmt.Scan(&input)
-					if input == "1" {
-						fmt.Println("Input item: ")
-						fmt.Scan(&item)
-						cms.Add(item)
-						continue
-					}else if input == "2" {
-						fmt.Println("Input item: ")
-						fmt.Scan(&item)
-						fmt.Println(cms.GetFrequency(item))
-						continue
-					}else if input == "0" {
-						break
-					}else {
-						fmt.Println("Input error. Try again!")
-						continue
-					}
-				}
+			if db.TokenBucket.HasTokens() {
+				cms := CountMinSketch.InitCMS(0.01, 0.01)
 				fmt.Println("Input key: ")
 				fmt.Scan(&key)
-				db.PutCms(key, cms)
+				db.PutCms(key, *cms)
+				continue
+			}else {
+				fmt.Println("Request denied!")
 			}
-			continue
+		}else if input == "2" {
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				succ := db.Delete(key)
+				if succ {
+					fmt.Println("You successfully deleted value with entered key.")
+				} else {
+					fmt.Println("Key not found.")
+				}
+				continue
+			}else {
+				fmt.Println("Request denied!")
+			}
+		}else if input == "3" {
+			if db.TokenBucket.HasTokens() {
+				fmt.Println("Input key: ")
+				fmt.Scan(&key)
+				found, cmsByte := db.Get(key)
+				if !found {
+					fmt.Println("Key not found.")
+				} else {
+					cms := CountMinSketch.CountMinSketch{}
+					cms.Decode(cmsByte)
+					for {
+						fmt.Println(cmsMenu2)
+						fmt.Scan(&input)
+						if input == "1" {
+							fmt.Println("Input item: ")
+							fmt.Scan(&item)
+							cms.Add(item)
+							continue
+						} else if input == "2" {
+							fmt.Println("Input item: ")
+							fmt.Scan(&item)
+							fmt.Println(cms.GetFrequency(item))
+							continue
+						} else if input == "0" {
+							break
+						} else {
+							fmt.Println("Input error. Try again!")
+							continue
+						}
+					}
+					fmt.Println("Input key: ")
+					fmt.Scan(&key)
+					db.PutCms(key, cms)
+				}
+				continue
+			}else {
+				fmt.Println("Request denied!")
+			}
 		}else if input == "0" {
 			break
 		}else {

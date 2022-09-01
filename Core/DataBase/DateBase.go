@@ -10,6 +10,7 @@ import (
 	"KeyValueEngine/Core/Structures/LSMTree"
 	"KeyValueEngine/Core/Structures/Memtable"
 	"KeyValueEngine/Core/Structures/SSTable"
+	"KeyValueEngine/Core/Structures/TokenBucket"
 	"KeyValueEngine/Core/Structures/WAL"
 	"fmt"
 	"strconv"
@@ -20,7 +21,8 @@ type DataBase struct {
 	lsm LSMTree.LSM
 	cache Cache.CacheLRU
 	hll HyperLogLog.HLL
-	cms CountMinSketch.CountMinSketch
+	cms         CountMinSketch.CountMinSketch
+	TokenBucket TokenBucket.TokenBucket
 }
 
 func InitDataBase() (*DataBase){
@@ -31,13 +33,15 @@ func InitDataBase() (*DataBase){
 	memtable := Memtable.InitMemtable(config.MemtableCapacity, config.MemtableTreshold)
 	lsm := LSMTree.InitLSM(*memtable, uint16(config.LsmMaxLevel), uint16(config.LsmMaxIndex))
 	cache := Cache.InitCache(config.CacheSize)
+	tb := TokenBucket.InitTokenBucket(uint16(config.TbMaxTokens), config.TbResetInterval)
 
 	return &DataBase{
-		wal: *wal,
-		lsm: *lsm,
-		cache: *cache,
-		hll: *HyperLogLog.InitHLL(4),
-		cms: *CountMinSketch.InitCMS(1, 1),
+		wal:         *wal,
+		lsm:         *lsm,
+		cache:       *cache,
+		hll:         *HyperLogLog.InitHLL(4),
+		cms:         *CountMinSketch.InitCMS(1, 1),
+		TokenBucket: *tb,
 	}
 }
 

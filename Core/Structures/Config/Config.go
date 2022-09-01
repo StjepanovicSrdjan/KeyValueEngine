@@ -3,6 +3,7 @@ package Config
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"time"
 )
 
 type Config struct {
@@ -12,7 +13,10 @@ type Config struct {
 	MemtableTreshold float64	 `yaml:"mem_treshold"`
 	CacheSize int			 	 `yaml:"cache_size"`
 	LsmMaxLevel int			 	 `yaml:"lsm_level"`
-	LsmMaxIndex int			 	 `yaml:"lsm_index"`
+	LsmMaxIndex     int           `yaml:"lsm_index"`
+	TbMaxTokens     int           `yaml:"TbMaxTokens"`
+	TbResetInterval time.Duration `yaml:"TbResetInterval"`
+	HllPrecision    int           `yaml:"hllPrecision"`
 }
 
 func (config *Config) LoadConfig(){
@@ -25,6 +29,9 @@ func (config *Config) LoadConfig(){
 		config.MemtableCapacity = 10
 		config.MemtableTreshold = 0.7
 		config.CacheSize = 10
+		config.TbMaxTokens = 3
+		config.TbResetInterval = 6000000000
+		config.HllPrecision = 4
 	} else {
 		err = yaml.Unmarshal(file, config)
 		if err != nil {
